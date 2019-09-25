@@ -1,0 +1,23 @@
+Package: semproducible
+Type: Package
+Title: Code generator for reproducible SEM models
+Version: 0.1.0
+Date: 2019-09-25
+Authors@R: c(
+    person("Peter", "Dahlgren", email = "peterdalle@gmail.com", role = c("aut", "cre"), 
+           comment = c(ORCID = "0000-0002-3509-3329"))
+  )
+Maintainer: Peter M. Dahlgren <peterdalle@gmail.com>
+Description: Code generator that takes a data frame and generates
+    R code that produce a covariance matrix and run it using the
+    lavaan package for structural equation modeling. This is usable
+    for reproducible SEM models.
+URL: https://github.com/peterdalle/semproducible
+BugReports: https://github.com/peterdalle/semproducible/issues
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    testthat (>= 2.1.0), 
+    stringi
+RoxygenNote: 6.1.1
