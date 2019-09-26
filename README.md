@@ -181,3 +181,14 @@ Petal.Length  1.266 -0.327  3.096
 ```
 
 However, `$cov` only gives you the covariance matrix of the *fitted* model, not all possible models that you could have run with all the data.
+
+## How do I save my code to a file?
+
+Let's assume your generated code is saved in the `code` variable, then run the following:
+
+```r
+# Save generated R code to file.
+fileConn <- file("my_file.r")
+writeLines(code, fileConn)
+close(fileConn)
+```
