@@ -1,7 +1,7 @@
 Package: semproducible
 Type: Package
 Title: Code generator for reproducible SEM models
-Version: 0.1.0
+Version: 0.1.1
 Date: 2019-09-25
 Authors@R: c(
     person("Peter", "Dahlgren", email = "peterdalle@gmail.com", role = c("aut", "cre"), 
