@@ -157,3 +157,27 @@ Variances:
 ```
 
 As you can see, the two outputs are identical, and we have successfully reproduced the model.
+
+# Questions
+
+## Why not get the covariance matrix directly from lavaan?
+
+You can get the observed sample statistics using the [`lavInspect()`](https://rdrr.io/cran/lavaan/man/lavInspect.html) method, like so:
+
+```r
+library(lavaan)
+fit <- lavaan::sem("Sepal.Length ~ Sepal.Width + Petal.Length", iris[, 1:4])
+lavInspect(fit, what = "sampstat")
+```
+
+Which will output the following:
+
+```
+$cov
+             Spl.Ln Spl.Wd Ptl.Ln
+Sepal.Length  0.681              
+Sepal.Width  -0.042  0.189       
+Petal.Length  1.266 -0.327  3.096
+```
+
+However, `$cov` only gives you the covariance matrix of the *fitted* model, not all possible models that you could have run with all the data.
