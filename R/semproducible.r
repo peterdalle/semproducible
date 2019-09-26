@@ -72,6 +72,10 @@ semproducible <- function(x,
   }
 
   # TODO: Add drop_non_numeric parameter.
+  if (drop_non_numeric) {
+    warn(paste("The 'drop_non_numeric' paramter is not implemented yet.",
+            "You have to manually remove non-numeric columns from your data."))
+  }
 
   # Create correlation matrix or covariance matrix.
   if ("data.frame" %in% class(x)) {
