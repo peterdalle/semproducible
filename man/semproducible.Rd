@@ -6,7 +6,8 @@
 \usage{
 semproducible(x, digits = NULL, early_line_break = FALSE,
   method = "cov", formula = "YOUR lavaan MODEL HERE",
-  target_variable = "data", drop_non_numeric = FALSE)
+  target_variable = "data", drop_non_numeric = FALSE,
+  vars_per_line = 9)
 }
 \arguments{
 \item{x}{a data frame with numeric variables, or a matrix with correlations
@@ -15,11 +16,6 @@ or covariances.}
 \item{digits}{number of decimal digits. The default (NULL) will show all
 available digits as specified by R options. The higher the number of
 decimal digits, the more accurate the reproducible model will be.}
-
-\item{early_line_break}{use early line break. This will show a single value
-per line instead of several values per line. This is only of importance
-if you plan to print your code or include it in a manuscript or article
-with a fixed width. Defaults to FALSE.}
 
 \item{method}{method for creating the matrix, either "cor" for correlations
 or "cov" for covariances (default). This argument is ignored if "x"
@@ -34,6 +30,9 @@ to "data", but can be anything you want.}
 \item{drop_non_numeric}{drop columns from the data frame that are not
 numeric. This is useful if you have characters of factors as columns which
 should not be included in the covariance matrix. Defaults to FALSE.}
+
+\item{vars_per_line}{number of variables (or values) per line. Many
+variables per line will increase the width of the code.}
 }
 \value{
 Character with the generated R code to reproduce the covariance
@@ -65,8 +64,8 @@ cat(semproducible(data, formula="y ~ x"))
 # Generate R code for the data, with 5 decimal digits.
 cat(semproducible(data, formula="y ~ x", digits=5))
 
-# Generate the same code, but keep each value on one line for easier reading.
-cat(semproducible(data, formula="y ~ x", digits=5, early_line_break=TRUE))
+# Generate the same code, but restrict number of values on one line.
+cat(semproducible(data, formula="y ~ x", digits=5, vars_per_line=4))
 
 # Save R code to file.
 code <- semproducible(data, formula="y ~ x")

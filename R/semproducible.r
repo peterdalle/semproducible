@@ -13,10 +13,6 @@
 #' @param digits number of decimal digits. The default (NULL) will show all
 #' available digits as specified by R options. The higher the number of
 #' decimal digits, the more accurate the reproducible model will be.
-#' @param early_line_break use early line break. This will show a single value
-#' per line instead of several values per line. This is only of importance
-#' if you plan to print your code or include it in a manuscript or article
-#' with a fixed width. Defaults to FALSE.
 #' @param method method for creating the matrix, either "cor" for correlations
 #' or "cov" for covariances (default). This argument is ignored if "x"
 #' is a matrix.
@@ -27,6 +23,8 @@
 #' @param drop_non_numeric drop columns from the data frame that are not
 #' numeric. This is useful if you have characters of factors as columns which
 #' should not be included in the covariance matrix. Defaults to FALSE.
+#' @param vars_per_line number of variables (or values) per line. Many
+#' variables per line will increase the width of the code.
 #' @return Character with the generated R code to reproduce the covariance
 #' matrix and the necessary lavaan code to run it.
 #' @export
@@ -47,8 +45,8 @@
 #' # Generate R code for the data, with 5 decimal digits.
 #' cat(semproducible(data, formula="y ~ x", digits=5))
 #'
-#' # Generate the same code, but keep each value on one line for easier reading.
-#' cat(semproducible(data, formula="y ~ x", digits=5, early_line_break=TRUE))
+#' # Generate the same code, but restrict number of values on one line.
+#' cat(semproducible(data, formula="y ~ x", digits=5, vars_per_line=4))
 #'
 #' # Save R code to file.
 #' code <- semproducible(data, formula="y ~ x")
@@ -60,7 +58,8 @@ semproducible <- function(x,
                           method = "cov",
                           formula = "YOUR lavaan MODEL HERE",
                           target_variable = "data",
-                          drop_non_numeric = FALSE) {
+                          drop_non_numeric = FALSE,
+                          vars_per_line = 9) {
   # Check inputs for errors.
   if ("matrix" %in% class(x)) {
     cor_mat <- x
@@ -111,34 +110,35 @@ semproducible <- function(x,
 
   # Generate variable names.
   var_names <- ""
+  var_i <- 0
   for (variable in row.names(cor_mat)) {
+    var_i <- var_i + 1
     var_names <- stringi::stri_c(var_names, "~", variable, ", ")
+    if (var_i >= vars_per_line) {
+      # Add line break after a specific number of variables.
+      var_names <- stringi::stri_c(var_names, "\n")
+      var_i <- 0
+    }
   }
   var_names <- base::substr(var_names, 1, nchar(var_names) - 2)
 
-
-  # TODO: Use utils::capture.output instead? Well, no because
-  # then we probably can't format it to fit 80 chars width.
-
   # Generate values.
   values <- ""
+  var_i <- 0
   for (i in seq.int(ncol(cor_mat))) {
-    if (!early_line_break) {
-      values <- stringi::stri_c(values, indent, sep="")
-    }
     for (j in seq(ncol(cor_mat))) {
+      var_i <- var_i + 1
       if (is.null(digits)) {
         value <- cor_mat[i, j]
       } else {
         value <- round(cor_mat[i, j], digits=digits)
       }
       values <- stringi::stri_c(values, value, ", ", sep="")
-      if (early_line_break) {
+      if (var_i >= vars_per_line) {
+        # Add line break after a specific number of variables.
         values <- stringi::stri_c(values, "\n")
+        var_i <- 0
       }
-    }
-    if (!early_line_break) {
-      values <- stringi::stri_c(values, indent, "\n")
     }
   }
   # Remove superfluous comma (,) at the end of values.
