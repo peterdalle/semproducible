@@ -234,3 +234,11 @@ The column `Species` is now automatically dropped, and you get a warning message
 Warning message:
 1 non-numeric column(s) dropped: Species
 ```
+
+## How do I control the width of the code?
+
+If you have a large data frame, you might want to control the width of the generated code so that it will fit on a typical page:
+
+```r
+code <- semproducible(iris, vars_per_line = 4)
+```
