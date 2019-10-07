@@ -78,8 +78,8 @@ semproducible <- function(x,
       x_raw <- x
       x <- x[sapply(x, is.numeric)]
       num_columns_dropped <- NCOL(x_raw) - NCOL(x)
-      columns_dropped <- setdiff(x_raw, x)
-      warning(paste(num_columns_dropped, "column(s) non-numeric dropped:",
+      columns_dropped <- names(setdiff(x_raw, x))
+      warning(paste(num_columns_dropped, "non-numeric column(s) dropped:",
                     columns_dropped),
               call. = FALSE)
     } else if (non_numeric_cols != 0) {
