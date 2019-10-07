@@ -29,6 +29,24 @@ test_that("generating R code from original data works", {
   expect_equal(25, total_true)
 })
 
+test_that("different vars_per_line work", {
+  set.seed(5653)
+  data <- data.frame(x = rnorm(100),
+                     y = rnorm(100),
+                     z = rnorm(100),
+                     w = rnorm(100),
+                     q = rnorm(100))
+
+  # Generate R code and run it.
+  for (i in -1:30) {
+    cat("Testing vars_per_line =", i, "\n")
+    eval(parse(text = semproducible(data,
+                                    target_variable = "tmp_var",
+                                    formula = "y ~ x + z + w",
+                                    vars_per_line = i)))
+  }
+})
+
 test_that("covariance matrix as input works", {
   set.seed(5653)
   data <- data.frame(x = rnorm(100),
@@ -42,7 +60,7 @@ test_that("covariance matrix as input works", {
 
   code <- semproducible(cov_mat, target_variable="tmp_var2",
                         formula = "y ~ x + z + w",
-                        early_line_break = TRUE)
+                        vars_per_line = 1)
 
   # Make sure the output type is correct.
   expect_equal(class(code), "character")
@@ -74,14 +92,12 @@ test_that("non-numeric input parameters are handled correctly", {
   # Should throw an error about non-numeric columns.
   expect_error(semproducible(data,
                              target_variable="tmp_var3",
-                             formula = "y ~ x + z + w",
-                             early_line_break = TRUE))
+                             formula = "y ~ x + z + w"))
 
   # Should work: drop_non_numeric = TRUE.
   expect_warning(code <- semproducible(data,
                         target_variable="tmp_var3",
                         formula = "y ~ x + z + w",
-                        early_line_break = TRUE,
                         drop_non_numeric = TRUE))
 
   # Make sure the output type is correct.
@@ -111,7 +127,7 @@ test_that("saving code files work", {
 
   code <- semproducible(data, target_variable="tmp_var4",
                         formula = "y ~ x",
-                        early_line_break = TRUE)
+                        vars_per_line = 4)
 
   tmp_file <- tempfile(fileext = ".r")
 
