@@ -24,5 +24,9 @@ code <- semproducible(data, formula="y ~ x")
 
 # Save R code to file.
 save_code(code, "create_data.r")
+
+# If the file already exists, you will get an error.
+# You need to explicitly overwrite existing files.
+save_code(code, "create_data.r", overwrite = TRUE)
 }
 }
