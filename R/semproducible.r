@@ -120,7 +120,6 @@ semproducible <- function(x,
       var_i <- 0
     }
   }
-  var_names <- base::substr(var_names, 1, nchar(var_names) - 2)
 
   # Generate values.
   values <- ""
@@ -153,7 +152,7 @@ library(lavaan)
 num_observations <- %%OBSERVATIONS%%
 
 # Covariance matrix.
-%%TARGET%% <- tribble(%%VARIABLES%%,
+%%TARGET%% <- tribble(%%VARIABLES%%
 %%VALUES%%)
 
 # Convert tibble to matrix (that lavaan can handle).
