@@ -1,4 +1,4 @@
-# semproducible -- code generator for reproducible SEM models
+# semproducible - code generator for reproducible SEM models
 
 **semproducible** is an R package that can easily make your SEM models reproducible by generating all the necessary data and R code, with just one line of code.
 
@@ -190,4 +190,8 @@ Use the `save_code()` function:
 save_code(code, "my_file.r")
 ```
 
-If `my_file.r` already exists, the function will not continue. You need to explicitly add the `overwrite = TRUE` parameter to overwrite existing files.
+If `my_file.r` already exists, the function will not continue. You need to explicitly add the `overwrite = TRUE` parameter to overwrite existing files:
+
+```r
+save_code(code, "my_file.r", overwrite = TRUE)
+```
