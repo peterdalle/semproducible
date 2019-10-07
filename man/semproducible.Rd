@@ -68,10 +68,8 @@ cat(semproducible(data, formula="y ~ x", digits=5))
 # Generate the same code, but keep each value on one line for easier reading.
 cat(semproducible(data, formula="y ~ x", digits=5, early_line_break=TRUE))
 
-# Save R code to a file.
+# Save R code to file.
 code <- semproducible(data, formula="y ~ x")
-fileConn <- file("create_data.r")
-writeLines(code, fileConn)
-close(fileConn)
+save_code(code, "create_data.r")
 }
 }
