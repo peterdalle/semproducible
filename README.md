@@ -195,3 +195,42 @@ If `my_file.r` already exists, the function will not continue. You need to expli
 ```r
 save_code(code, "my_file.r", overwrite = TRUE)
 ```
+
+## Do I need to specify all columns?
+
+The default behavior is that semproducible requires you to specify which columns that will be used in the covariance matrix.
+
+Look at the `iris` dataset, for example:
+
+```r
+head(iris)
+```
+
+```
+  Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+1          5.1         3.5          1.4         0.2  setosa
+2          4.9         3.0          1.4         0.2  setosa
+3          4.7         3.2          1.3         0.2  setosa
+4          4.6         3.1          1.5         0.2  setosa
+5          5.0         3.6          1.4         0.2  setosa
+6          5.4         3.9          1.7         0.4  setosa
+```
+
+The column `Species` is a factor, which means that this will give you an error:
+
+```r
+code <- semproducible(iris)
+```
+
+But this will work:
+
+```r
+code <- semproducible(iris, drop_non_numeric = TRUE)
+```
+
+The column `Species` is now automatically dropped, and you get a warning message of what happened:
+
+```
+Warning message:
+1 non-numeric column(s) dropped: Species
+```
