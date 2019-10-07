@@ -184,11 +184,10 @@ However, `$cov` only gives you the covariance matrix of the *fitted* model, not 
 
 ## How do I save my code to a file?
 
-Let's assume your generated code is saved in the `code` variable, then run the following:
+Use the `save_code()` function:
 
 ```r
-# Save generated R code to file.
-fileConn <- file("my_file.r")
-writeLines(code, fileConn)
-close(fileConn)
+save_code(code, "my_file.r")
 ```
+
+If `my_file.r` already exists, the function will not continue. You need to explicitly add the `overwrite = TRUE` parameter to overwrite existing files.
