@@ -50,11 +50,9 @@
 #' # Generate the same code, but keep each value on one line for easier reading.
 #' cat(semproducible(data, formula="y ~ x", digits=5, early_line_break=TRUE))
 #'
-#' # Save R code to a file.
+#' # Save R code to file.
 #' code <- semproducible(data, formula="y ~ x")
-#' fileConn <- file("create_data.r")
-#' writeLines(code, fileConn)
-#' close(fileConn)
+#' save_code(code, "create_data.r")
 #' }
 semproducible <- function(x,
                           digits = NULL,
@@ -71,10 +69,27 @@ semproducible <- function(x,
     stop("x must be of type 'matrix' or 'data.frame'.")
   }
 
-  # TODO: Add drop_non_numeric parameter.
-  if (drop_non_numeric) {
-    warning(paste("The 'drop_non_numeric' paramter is not implemented yet.",
-            "You have to manually remove non-numeric columns from your data."))
+  # Check for non-numeric columns.
+  if ("data.frame" %in% class(x) & method == "cov") {
+    # Check that all columns are numeric, throw error if not.
+    non_numeric_cols <- NCOL(x) - sum(sapply(x, is.numeric))
+    if (drop_non_numeric & non_numeric_cols != 0) {
+      # Drop all non-numeric columns.
+      x_raw <- x
+      x <- x[sapply(x, is.numeric)]
+      num_columns_dropped <- NCOL(x_raw) - NCOL(x)
+      columns_dropped <- setdiff(x_raw, x)
+      warning(paste(num_columns_dropped, "column(s) non-numeric dropped:",
+                    columns_dropped),
+              call. = FALSE)
+    } else if (non_numeric_cols != 0) {
+      # Throw error.
+      stop(paste("x contain", non_numeric_cols, "non-numeric column(s).",
+                 "All columns must be numeric.",
+                 "You can use the 'drop_non_numeric = TRUE'",
+                 "parameter if you want to drop all non-numeric variables",
+                 "automatically."), call. = FALSE)
+    }
   }
 
   # Create correlation matrix or covariance matrix.
@@ -85,18 +100,6 @@ semproducible <- function(x,
       cor_mat <- cov(x, use="complete.obs")
     } else {
       stop("Method must be 'cor' or 'cov'.")
-    }
-  }
-
-  if ("data.frame" %in% class(x) & method == "cov") {
-    # Check that all columns are numeric, throw error if not.
-    non_numeric_cols <- NCOL(x) - sum(sapply(x, is.numeric))
-    if (non_numeric_cols != 0) {
-      stop(paste("x contain", non_numeric_cols, "non-numeric column(s).",
-                 "All columns must be numeric.",
-                 "You can use the 'drop_non_numeric = TRUE'",
-                 "parameter if you want to drop all non-numeric variables",
-                 "automatically."))
     }
   }
 
@@ -178,4 +181,38 @@ summary(fit)"
   code <- gsub("%%VARIABLES%%", var_names, code)
   code <- gsub("%%VALUES%%", values, code)
   return(code)
+}
+
+
+#' Save code to a file
+#'
+#' @param code R code to save (character).
+#' @param filename filename of the file (character).
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Create random data.
+#' data <- data.frame(x = rnorm(100), y = rnorm(100))
+#'
+#' # Generate R code.
+#' code <- semproducible(data, formula="y ~ x")
+#'
+#' # Save R code to file.
+#' save_code(code, "create_data.r")
+#'
+#' # If the file already exists, you will get an error.
+#' # You need to explicitly overwrite existing files.
+#' save_code(code, "create_data.r", overwrite = TRUE)
+#' }
+save_code <- function(code, filename, overwrite=FALSE) {
+  if (file.exists(filename) & !overwrite) {
+    stop(paste0("File '", filename, "' already exist.",
+    " Use 'overwrite = TRUE' parameter to overwrite existing file."),
+    call. = FALSE)
+  }
+  fileConn <- file(filename)
+  writeLines(code, fileConn)
+  close(fileConn)
 }
