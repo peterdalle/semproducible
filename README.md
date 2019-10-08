@@ -2,16 +2,12 @@
 
 **semproducible** is an R package that can easily make your SEM models reproducible by generating all the necessary data and R code, with just one line of code.
 
-Open data is great, but sometimes you cannot make raw data publicly accessible for legal or ethical reasons. This is where semproducible comes in.
-
-Give semproducible a data frame with your data and it will convert your data to a covariance matrix and generate R code that is necessary to run your SEM model using the popular R package `lavaan`. Just copy and paste the generated code into your manuscript and you have a SEM model that others can reproduce and play around with in seconds.
-
-Benefits of semproducible:
+## Benefits of semproducible
 
 - only one line of code is needed to get started
 - you can create reproducible models without making your raw data publicly accessible
-- the generated code can fit on one page in a journal article
-- other researchers run your model and try out alternative model specifications
+- the generated code can fit on a page in a journal article
+- other researchers can run your model and try out alternative model specifications
 
 In short, semproducible offers a good balance between open science, reproducibility, and integrity.
 
@@ -25,7 +21,7 @@ devtools::install_github("peterdalle/semproducible")
 
 1. Give semproducible a data frame.
 2. Semproducible creates a covariance matrix of your data frame.
-3. Semproducible generates code for both the covariance matrix and code to run the SEM model using the `lavaan` package.
+3. Semproducible generates R code for both the covariance matrix and code necessary to run the SEM model using `lavaan`.
 
 # Example
 
