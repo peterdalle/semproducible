@@ -16,8 +16,8 @@
 #' @param method method for creating the matrix, either "cor" for correlations
 #' or "cov" for covariances (default). This argument is ignored if "x"
 #' is a matrix.
-#' @param target_variable target variable name for the generated code. Defaults
-#' to "data", but can be anything you want.
+#' @param target_variable target variable name for the generated covariance
+#' matrix. Defaults to "cov_mat".
 #' @param formula optional argument that specifies the lavaan formula syntax
 #' that should be included in the code.
 #' @param drop_non_numeric drop columns from the data frame that are not
@@ -54,10 +54,9 @@
 #' }
 semproducible <- function(x,
                           digits = NULL,
-                          early_line_break = FALSE,
                           method = "cov",
                           formula = "YOUR lavaan MODEL HERE",
-                          target_variable = "data",
+                          target_variable = "cov_mat",
                           drop_non_numeric = FALSE,
                           vars_per_line = 9) {
   # Check inputs for errors.
@@ -149,7 +148,7 @@ semproducible <- function(x,
 library(lavaan)
 
 # Number of observations.
-num_observations <- %%OBSERVATIONS%%
+observations <- %%OBSERVATIONS%%
 
 # Covariance matrix.
 %%TARGET%% <- tribble(%%VARIABLES%%
@@ -158,16 +157,16 @@ num_observations <- %%OBSERVATIONS%%
 # Convert tibble to matrix (that lavaan can handle).
 %%TARGET%% <- as.matrix(%%TARGET%%)
 
-# Rows should have a name too.
+# Rows should have names too.
 rownames(%%TARGET%%) <- colnames(%%TARGET%%)
 
 # SEM model in lavaan syntax.
-my_model <- '%%FORMULA%%'
+model <- '%%FORMULA%%'
 
 # Fit SEM model.
-fit <- lavaan::sem(model = my_model,
+fit <- lavaan::sem(model = model,
                    sample.cov = %%TARGET%%,
-                   sample.nobs = num_observations)
+                   sample.nobs = observations)
 
 # Show results.
 summary(fit)"

@@ -4,10 +4,9 @@
 \alias{semproducible}
 \title{Code generator for reproducible covariance matrix}
 \usage{
-semproducible(x, digits = NULL, early_line_break = FALSE,
-  method = "cov", formula = "YOUR lavaan MODEL HERE",
-  target_variable = "data", drop_non_numeric = FALSE,
-  vars_per_line = 9)
+semproducible(x, digits = NULL, method = "cov",
+  formula = "YOUR lavaan MODEL HERE", target_variable = "cov_mat",
+  drop_non_numeric = FALSE, vars_per_line = 9)
 }
 \arguments{
 \item{x}{a data frame with numeric variables, or a matrix with correlations
@@ -24,8 +23,8 @@ is a matrix.}
 \item{formula}{optional argument that specifies the lavaan formula syntax
 that should be included in the code.}
 
-\item{target_variable}{target variable name for the generated code. Defaults
-to "data", but can be anything you want.}
+\item{target_variable}{target variable name for the generated covariance
+matrix. Defaults to "cov_mat".}
 
 \item{drop_non_numeric}{drop columns from the data frame that are not
 numeric. This is useful if you have characters of factors as columns which
