@@ -47,28 +47,26 @@ library(tibble)
 library(lavaan)
 
 # Number of observations.
-num_observations <- 150
+observations <- 150
 
 # Covariance matrix.
-data <- tribble(~Sepal.Length, ~Sepal.Width, ~Petal.Length, ~Petal.Width,
+cov_mat <- tribble(~Sepal.Length, ~Sepal.Width, ~Petal.Length, ~Petal.Width,
               0.685693512304251, -0.0424340044742729, 1.27431543624161, 0.516270693512304,               
               -0.0424340044742729, 0.189979418344519, -0.329656375838926, -0.12163937360179,               
               1.27431543624161, -0.329656375838926, 3.11627785234899, 1.29560939597315,               
               0.516270693512304, -0.12163937360179, 1.29560939597315, 0.581006263982103)
 
 # Convert data frame to matrix (that lavaan can handle).
-data <- as.matrix(data)
+cov_mat <- as.matrix(cov_mat)
 
-# Rows should have a name too.
-rownames(data) <- colnames(data)
+# Rows should have names too.
+rownames(cov_mat) <- colnames(cov_mat)
 
 # SEM model in lavaan syntax.
-my_model <- 'Sepal.Length ~ Sepal.Width + Petal.Length'
+model <- 'Sepal.Length ~ Sepal.Width + Petal.Length'
 
 # Fit SEM model.
-fit <- lavaan::sem(my_model,
-                   sample.cov = data,
-                   sample.nobs = num_observations)
+fit <- lavaan::sem(model, sample.cov = cov_mat, sample.nobs = observations)
 
 # Show results.
 summary(fit)
@@ -161,7 +159,6 @@ As you can see, the two outputs are identical, and we have successfully reproduc
 You can get the observed sample statistics using the [`lavInspect()`](https://rdrr.io/cran/lavaan/man/lavInspect.html) method, like so:
 
 ```r
-library(lavaan)
 fit <- lavaan::sem("Sepal.Length ~ Sepal.Width + Petal.Length", iris[, 1:4])
 lavInspect(fit, what = "sampstat")
 ```
