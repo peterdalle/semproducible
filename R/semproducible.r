@@ -16,6 +16,10 @@
 #' @param method method for creating the matrix, either "cor" for correlations
 #' or "cov" for covariances (default). This argument is ignored if "x"
 #' is a matrix.
+#' @param use optional character string giving a method for computing
+#' covariances in the presence of missing values. This must be one of the
+#' strings "everything", "all.obs", "complete.obs", "na.or.complete", or
+#' "pairwise.complete.obs". This value is passed on to the cov() method.
 #' @param target_variable target variable name for the generated covariance
 #' matrix. Defaults to "cov_mat".
 #' @param formula optional argument that specifies the lavaan formula syntax
@@ -55,6 +59,7 @@
 semproducible <- function(x,
                           digits = NULL,
                           method = "cov",
+                          use = "complete.obs",
                           formula = "YOUR lavaan MODEL HERE",
                           target_variable = "cov_mat",
                           drop_non_numeric = FALSE,
@@ -92,9 +97,9 @@ semproducible <- function(x,
   # Create correlation matrix or covariance matrix.
   if ("data.frame" %in% class(x)) {
     if (method == "cor") {
-      cor_mat <- cor(x, use="complete.obs")
+      cor_mat <- cor(x, use=use)
     } else if (method == "cov") {
-      cor_mat <- cov(x, use="complete.obs")
+      cor_mat <- cov(x, use=use)
     } else {
       stop("Method must be 'cor' or 'cov'.")
     }
