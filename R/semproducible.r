@@ -29,6 +29,10 @@
 #' should not be included in the covariance matrix. Defaults to FALSE.
 #' @param vars_per_line number of variables (or values) per line. Many
 #' variables per line will increase the width of the code.
+#' @param eval whether or not the generated code and lavaan model will be
+#' executed. If eval is set to TRUE and the code fails, you will get an error
+#' message. If the code successfully run without errors, the generated code
+#' will simply be returned without any message.
 #' @return Character with the generated R code to reproduce the covariance
 #' matrix and the necessary lavaan code to run it.
 #' @export
@@ -63,7 +67,8 @@ semproducible <- function(x,
                           formula = "YOUR lavaan MODEL HERE",
                           target_variable = "cov_mat",
                           drop_non_numeric = FALSE,
-                          vars_per_line = 9) {
+                          vars_per_line = 9,
+                          eval = FALSE) {
   # Check inputs for errors.
   if ("matrix" %in% class(x)) {
     cor_mat <- x
@@ -182,6 +187,21 @@ summary(fit)"
   code <- gsub("%%TARGET%%", target_variable, code)
   code <- gsub("%%VARIABLES%%", var_names, code)
   code <- gsub("%%VALUES%%", values, code)
+
+  # Run the code to check for errors?
+  if (eval) {
+    if (is.null(formula) || formula == "YOUR lavaan MODEL HERE") {
+      stop("No lavaan formula specified, cannot evaluate lavaan model.",
+           call. = FALSE)
+    }
+    if (is.null(code)) {
+      stop("No code was generated, cannot evaluate code or lavaan model.",
+           call. = FALSE)
+    }
+    # Run the generated code and stop if any errors are thrown.
+    tryCatch(base::eval(parse(text = code)), error = function(e) stop(e))
+    message("Code and lavaan model evaluated successfully.")
+  }
   return(code)
 }
 
