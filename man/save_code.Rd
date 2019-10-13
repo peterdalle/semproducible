@@ -10,6 +10,8 @@ save_code(code, filename, overwrite = FALSE)
 \item{code}{character string with R code.}
 
 \item{filename}{character string with filename of the file to be saved.}
+
+\item{overwrite}{whether or not to overwrite an existing file.}
 }
 \description{
 Save generated code to a file. Does not overwrite existing files unless
