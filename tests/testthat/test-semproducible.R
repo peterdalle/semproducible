@@ -37,15 +37,27 @@ test_that("different vars_per_line work", {
                      w = rnorm(100),
                      q = rnorm(100))
 
-  # Generate R code and run it.
+  # Test different vars_per_line (from -1 to 30) and run the code.
   for (i in -1:30) {
     cat("Testing vars_per_line =", i, "\n")
     eval(parse(text = semproducible(data,
-                                    target_variable = "tmp_var",
+                                    target_variable = "tmp_var_test",
                                     formula = "y ~ x + z + w",
                                     vars_per_line = i)))
+
+    # Variable should be a matrix if code successfully ran.
+    expect_equal(class(tmp_var_test), "matrix")
+    expect_type(tmp_var_test, "double")
+
+    # Variable should be lavaan object.
+    expect_equal(class(fit)[1], "lavaan")
+
+    # Clean up so we don't accidentally test old variables.
+    rm(tmp_var_test)
+    rm(fit)
   }
 })
+
 
 test_that("covariance matrix as input works", {
   set.seed(5653)
@@ -80,6 +92,7 @@ test_that("covariance matrix as input works", {
   expect_equal(25, total_true)
 })
 
+
 test_that("non-numeric input parameters are handled correctly", {
   set.seed(5653)
   data <- data.frame(x = rnorm(100),
@@ -95,7 +108,7 @@ test_that("non-numeric input parameters are handled correctly", {
                              formula = "y ~ x + z + w"))
 
   # Should work: drop_non_numeric = TRUE.
-  expect_warning(code <- semproducible(data,
+  expect_message(code <- semproducible(data,
                         target_variable="tmp_var3",
                         formula = "y ~ x + z + w",
                         drop_non_numeric = TRUE))
@@ -121,7 +134,6 @@ test_that("non-numeric input parameters are handled correctly", {
 })
 
 
-
 test_that("saving code files work", {
   data <- data.frame(x = rnorm(100), y = rnorm(100))
 
@@ -141,4 +153,26 @@ test_that("saving code files work", {
 
   # Cleanup test file.
   file.remove(tmp_file)
+})
+
+
+test_that("evaluating code works", {
+  data <- data.frame(x = rnorm(100), y = rnorm(100))
+
+  # This should work
+  code <- semproducible(data, target_variable="tmp_var5",
+                        formula = "y ~ x",
+                        vars_per_line = 4,
+                        digits = 3)
+
+  # This is a very hard (even unfair!) test because any change in the
+  # length of the generated code will throw this exception.
+  expect_equal(nchar(code), 533)
+
+  # Use wrong variable names, should cause complaints by lavaan.
+  expect_error(code <- semproducible(data, target_variable="tmp_var5",
+                        formula = "y ~ VAR_DOES_NOT_EXIST",
+                        vars_per_line = 4,
+                        eval = TRUE))
+
 })
