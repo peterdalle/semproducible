@@ -33,6 +33,9 @@
 #' executed. If eval is set to TRUE and the code fails, you will get an error
 #' message. If the code successfully run without errors, the generated code
 #' will simply be returned without any message.
+#' @param print whether or not to print the code to the screen or return the
+#' code as a character string (default). Printing to screen is useful for
+#' debugging.
 #' @return Character with the generated R code to reproduce the covariance
 #' matrix and the necessary lavaan code to run it.
 #' @export
@@ -68,7 +71,8 @@ semproducible <- function(x,
                           target_variable = "cov_mat",
                           drop_non_numeric = FALSE,
                           vars_per_line = 9,
-                          eval = FALSE) {
+                          eval = FALSE,
+                          print = FALSE) {
   # Check inputs for errors.
   if ("matrix" %in% class(x)) {
     cor_mat <- x
@@ -88,14 +92,17 @@ semproducible <- function(x,
       num_columns_dropped <- NCOL(x_raw) - NCOL(x)
       columns_dropped <- paste(names(setdiff(x_raw, x)), collapse=" ")
       message(paste("Dropped", num_columns_dropped, "non-numeric column(s):",
-                    columns_dropped, sep=" "), call. = FALSE)
+                    columns_dropped, sep=" "))
     } else if (non_numeric_cols != 0) {
+      # Get name of non-numeric columns.
+      non_numeric_colums <- paste(names(x[!sapply(x, is.numeric)]),
+                                  collapse=" ")
       # Throw error.
-      stop(paste("x contain", non_numeric_cols, "non-numeric column(s).",
-                 "All columns must be numeric.",
-                 "You can use the 'drop_non_numeric = TRUE'",
-                 "parameter if you want to drop all non-numeric variables",
-                 "automatically."), call. = FALSE)
+      stop(paste("x contain ", non_numeric_cols, " non-numeric column(s): ",
+                 trimws(non_numeric_colums),
+                 ". Use 'drop_non_numeric = TRUE' to drop them",
+                 " automatically, or remove them manually.", sep=""),
+           call. = FALSE)
     }
   }
 
@@ -202,7 +209,14 @@ summary(fit)"
     tryCatch(base::eval(parse(text = code)), error = function(e) stop(e))
     message("Code and lavaan model evaluated successfully.")
   }
-  return(code)
+
+  if (print) {
+    # Only print the code to standard output (screen).
+    cat(code)
+  } else {
+    # Only return the code.
+    return(code)
+  }
 }
 
 
