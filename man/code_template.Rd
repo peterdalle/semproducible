@@ -34,9 +34,9 @@ covariance matrix.
 data <- data.frame(x = rnorm(100), y = rnorm(100))
 
 # Modify code template.
-template <- paste(code_template(), "# A comment placed at end of code")
+template <- paste(code_template(), "\\n# A comment placed at end of code")
 
 # Generate R code with the template.
-code <- semproducible(data, formula="y ~ x", code_template = template)
+code <- semproducible(data, formula="y ~ x", template = template)
 }
 }

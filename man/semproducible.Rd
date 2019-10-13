@@ -4,7 +4,7 @@
 \alias{semproducible}
 \title{Code generator for reproducible covariance matrix}
 \usage{
-semproducible(x, digits = NULL, method = "cov", use = "complete.obs",
+semproducible(x, digits = NULL, use = "complete.obs",
   formula = "YOUR lavaan MODEL HERE", target_variable = "cov_mat",
   drop_non_numeric = FALSE, vars_per_line = 9, eval = FALSE,
   print = FALSE, template = NULL)
@@ -16,10 +16,6 @@ or covariances.}
 \item{digits}{number of decimal digits. The default (NULL) will show all
 available digits as specified by R options. The higher the number of
 decimal digits, the more accurate the reproducible model will be.}
-
-\item{method}{method for creating the matrix, either "cor" for correlations
-or "cov" for covariances (default). This argument is ignored if "x"
-is a matrix.}
 
 \item{use}{optional character string giving a method for computing
 covariances in the presence of missing values. This must be one of the
@@ -40,21 +36,21 @@ should not be included in the covariance matrix. Defaults to FALSE.}
 variables per line will increase the width of the code.}
 
 \item{eval}{whether or not the generated code and lavaan model will be
-executed. If eval is set to TRUE and the code fails, you will get an error
-message. If the code successfully run without errors, the generated code
-will simply be returned without any message.}
+executed. If eval is set to TRUE, a message will tell you whether the
+code executed withour errors or not.}
 
 \item{print}{whether or not to print the code to the screen or return the
-code as a character string (default). Printing to screen is useful for
-debugging.}
+code as a character string (default). Printing to screen is useful during
+development.}
 
 \item{template}{a character string with a custom code template that
 is used when generating the R code. See the code_template() function for
-instructions on how to write your own template.}
+instructions on how to write your own template. A NULL value (default)
+will use the default template from code_template().}
 }
 \value{
-Character with the generated R code to reproduce the covariance
-matrix and the necessary lavaan code to run it.
+a character string with the generated R code to reproduce the
+covariance matrix and the necessary lavaan code to run it.
 }
 \description{
 Generate R code from your data frame or an existing covariance matrix.
@@ -64,7 +60,7 @@ that can be used by a structural equation model (SEM) in lavaan.
 \details{
 You supply a data frame with numeric variables (or a covariance matrix that
 you have already prepared). The function then generates R code that
-can reproduce the SEM model as a correlation matrix or a covariance matrix.
+can reproduce the SEM model as a covariance matrix.
 }
 \examples{
 \dontrun{
@@ -79,13 +75,13 @@ data <- data.frame(x = rnorm(100),
 # Generate R code for the data.
 cat(semproducible(data, formula="y ~ x"))
 
-# Generate R code for the data, with 5 decimal digits.
+# Use 5 decimal digits.
 cat(semproducible(data, formula="y ~ x", digits=5))
 
-# Generate the same code, but restrict number of values on one line.
+# Restrict number of values per line to 4.
 cat(semproducible(data, formula="y ~ x", digits=5, vars_per_line=4))
 
-# Save R code to file.
+# Save code to a file.
 code <- semproducible(data, formula="y ~ x")
 save_code(code, "create_data.r")
 }

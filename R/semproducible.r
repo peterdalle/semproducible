@@ -6,17 +6,14 @@
 #'
 #' You supply a data frame with numeric variables (or a covariance matrix that
 #' you have already prepared). The function then generates R code that
-#' can reproduce the SEM model as a correlation matrix or a covariance matrix.
+#' can reproduce the SEM model as a covariance matrix.
 #'
 #' @param x a data frame with numeric variables, or a matrix with correlations
 #' or covariances.
 #' @param digits number of decimal digits. The default (NULL) will show all
 #' available digits as specified by R options. The higher the number of
 #' decimal digits, the more accurate the reproducible model will be.
-#' @param method method for creating the matrix, either "cor" for correlations
-#' or "cov" for covariances (default). This argument is ignored if "x"
-#' is a matrix.
-#' @param use optional character string giving a method for computing
+#' @param use optional character string for computing the
 #' covariances in the presence of missing values. This must be one of the
 #' strings "everything", "all.obs", "complete.obs", "na.or.complete", or
 #' "pairwise.complete.obs". This value is passed on to the cov() method.
@@ -30,17 +27,17 @@
 #' @param vars_per_line number of variables (or values) per line. Many
 #' variables per line will increase the width of the code.
 #' @param eval whether or not the generated code and lavaan model will be
-#' executed. If eval is set to TRUE and the code fails, you will get an error
-#' message. If the code successfully run without errors, the generated code
-#' will simply be returned without any message.
+#' executed. If eval is set to TRUE, a message will tell you whether the
+#' code executed withour errors or not.
 #' @param print whether or not to print the code to the screen or return the
-#' code as a character string (default). Printing to screen is useful for
-#' debugging.
+#' code as a character string (default). Printing to screen is useful during
+#' development.
 #' @param template a character string with a custom code template that
 #' is used when generating the R code. See the code_template() function for
-#' instructions on how to write your own template.
-#' @return Character with the generated R code to reproduce the covariance
-#' matrix and the necessary lavaan code to run it.
+#' instructions on how to write your own template. A NULL value (default)
+#' will use the default template from code_template().
+#' @return a character string with the generated R code to reproduce the
+#' covariance matrix and the necessary lavaan code to run it.
 #' @export
 #'
 #' @examples
@@ -56,19 +53,18 @@
 #' # Generate R code for the data.
 #' cat(semproducible(data, formula="y ~ x"))
 #'
-#' # Generate R code for the data, with 5 decimal digits.
+#' # Use 5 decimal digits.
 #' cat(semproducible(data, formula="y ~ x", digits=5))
 #'
-#' # Generate the same code, but restrict number of values on one line.
+#' # Restrict number of values per line to 4.
 #' cat(semproducible(data, formula="y ~ x", digits=5, vars_per_line=4))
 #'
-#' # Save R code to file.
+#' # Save code to a file.
 #' code <- semproducible(data, formula="y ~ x")
 #' save_code(code, "create_data.r")
 #' }
 semproducible <- function(x,
                           digits = NULL,
-                          method = "cov",
                           use = "complete.obs",
                           formula = "YOUR lavaan MODEL HERE",
                           target_variable = "cov_mat",
@@ -80,13 +76,13 @@ semproducible <- function(x,
   # Check inputs for errors.
   if ("matrix" %in% class(x)) {
     cor_mat <- x
-  } else if ("data.frame" %in% class(x)) {
+  } else if (is.data.frame(x)) {
   } else {
     stop("x must be of type 'matrix' or 'data.frame'.")
   }
 
-  # Check for non-numeric columns.
-  if ("data.frame" %in% class(x) & method == "cov") {
+  # Check for non-numeric columns (doesn't apply to matrices).
+  if (is.data.frame(x)) {
     # Check that all columns are numeric, throw error if not.
     non_numeric_cols <- NCOL(x) - sum(sapply(x, is.numeric))
     if (drop_non_numeric & non_numeric_cols != 0) {
@@ -110,15 +106,9 @@ semproducible <- function(x,
     }
   }
 
-  # Create correlation matrix or covariance matrix.
-  if ("data.frame" %in% class(x)) {
-    if (method == "cor") {
-      cor_mat <- cor(x, use=use)
-    } else if (method == "cov") {
-      cor_mat <- cov(x, use=use)
-    } else {
-      stop("Method must be 'cor' or 'cov'.")
-    }
+  # Create covariance matrix if it's not already
+  if (is.data.frame(x)) {
+    cor_mat <- cov(x, use=use)
   }
 
   # Get the number of observations in the data frame or matrix.
