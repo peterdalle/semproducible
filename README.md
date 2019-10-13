@@ -209,29 +209,72 @@ head(iris)
 6          5.4         3.9          1.7         0.4  setosa
 ```
 
-The column `Species` is a factor, which means that this will give you an error:
+The column `Species` is a factor, which means that you will get an error if used with semproducible.
 
-```r
-code <- semproducible(iris)
-```
-
-But this will work:
+However, use the `drop_non_numeric = TRUE` to automatically drop columns that is not numeric:
 
 ```r
 code <- semproducible(iris, drop_non_numeric = TRUE)
 ```
 
-The column `Species` is now automatically dropped, and you get a warning message of what happened:
+The column `Species` is now dropped, which a message informs you of:
 
 ```
-Warning message:
-1 non-numeric column(s) dropped: Species
+Dropped 1 non-numeric column(s): Species 
 ```
 
 ## How do I control the width of the code?
 
-If you have a large data frame, you might want to control the width of the generated code so that it will fit on a typical page:
+If you have a large data frame you want to fit into the appendix of a journal article, you can control the number of values per line of the generated code with `vars_per_line = 2` for two variables/values per line.
+
+You can also set `digits = 4` to round the number of decimals to four (default behavior is as many decimals as your current R session uses).
 
 ```r
-code <- semproducible(iris, vars_per_line = 4)
+semproducible(iris, drop_non_numeric = TRUE, vars_per_line = 2, digits = 4)
 ```
+
+Output:
+
+```
+[...]
+
+# Covariance matrix.
+cov_mat <- tribble(~Sepal.Length, ~Sepal.Width, 
+~Petal.Length, ~Petal.Width, 
+
+0.6857, -0.0424, 
+1.2743, 0.5163, 
+-0.0424, 0.19, 
+-0.3297, -0.1216, 
+1.2743, -0.3297, 
+3.1163, 1.2956, 
+0.5163, -0.1216, 
+1.2956, 0.581)
+
+[...]
+```
+
+## Can I use semproducible in a `tidyverse` pipeline?
+
+Yes, semproducible can be used together with pipes (the `%>%` operator):
+
+```r
+library(tidyverse)
+
+iris %>%  
+    select(Sepal.Length, Sepal.Width, Petal.Length) %>% 
+    semproducible(formula = "Sepal.Length ~ Sepal.Width + Petal.Length") %>%
+    cat()
+```
+
+## How do I know that my generated code is correct?
+
+Add the `eval = TRUE` argument and the generated code will automatically run and evaluate. 
+
+```r
+code <- semproducible(iris[, 1:4], formula = "Sepal.Length ~ Sepal.Width + Petal.Length", eval = TRUE)
+```
+
+If the code fails, you will get an error message.
+
+If the code runs successfully, semproducible will simply inform you of so and return your code (note: semproducible does not evaluate model fit or model convergence).
