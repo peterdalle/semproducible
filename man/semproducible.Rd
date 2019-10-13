@@ -4,9 +4,10 @@
 \alias{semproducible}
 \title{Code generator for reproducible covariance matrix}
 \usage{
-semproducible(x, digits = NULL, method = "cov",
+semproducible(x, digits = NULL, method = "cov", use = "complete.obs",
   formula = "YOUR lavaan MODEL HERE", target_variable = "cov_mat",
-  drop_non_numeric = FALSE, vars_per_line = 9)
+  drop_non_numeric = FALSE, vars_per_line = 9, eval = FALSE,
+  print = FALSE)
 }
 \arguments{
 \item{x}{a data frame with numeric variables, or a matrix with correlations
@@ -20,6 +21,11 @@ decimal digits, the more accurate the reproducible model will be.}
 or "cov" for covariances (default). This argument is ignored if "x"
 is a matrix.}
 
+\item{use}{optional character string giving a method for computing
+covariances in the presence of missing values. This must be one of the
+strings "everything", "all.obs", "complete.obs", "na.or.complete", or
+"pairwise.complete.obs". This value is passed on to the cov() method.}
+
 \item{formula}{optional argument that specifies the lavaan formula syntax
 that should be included in the code.}
 
@@ -32,6 +38,15 @@ should not be included in the covariance matrix. Defaults to FALSE.}
 
 \item{vars_per_line}{number of variables (or values) per line. Many
 variables per line will increase the width of the code.}
+
+\item{eval}{whether or not the generated code and lavaan model will be
+executed. If eval is set to TRUE and the code fails, you will get an error
+message. If the code successfully run without errors, the generated code
+will simply be returned without any message.}
+
+\item{print}{whether or not to print the code to the screen or return the
+code as a character string (default). Printing to screen is useful for
+debugging.}
 }
 \value{
 Character with the generated R code to reproduce the covariance
