@@ -7,7 +7,7 @@
 semproducible(x, digits = NULL, method = "cov", use = "complete.obs",
   formula = "YOUR lavaan MODEL HERE", target_variable = "cov_mat",
   drop_non_numeric = FALSE, vars_per_line = 9, eval = FALSE,
-  print = FALSE)
+  print = FALSE, template = NULL)
 }
 \arguments{
 \item{x}{a data frame with numeric variables, or a matrix with correlations
@@ -47,6 +47,10 @@ will simply be returned without any message.}
 \item{print}{whether or not to print the code to the screen or return the
 code as a character string (default). Printing to screen is useful for
 debugging.}
+
+\item{template}{a character string with a custom code template that
+is used when generating the R code. See the code_template() function for
+instructions on how to write your own template.}
 }
 \value{
 Character with the generated R code to reproduce the covariance

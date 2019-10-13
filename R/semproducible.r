@@ -36,6 +36,9 @@
 #' @param print whether or not to print the code to the screen or return the
 #' code as a character string (default). Printing to screen is useful for
 #' debugging.
+#' @param template a character string with a custom code template that
+#' is used when generating the R code. See the code_template() function for
+#' instructions on how to write your own template.
 #' @return Character with the generated R code to reproduce the covariance
 #' matrix and the necessary lavaan code to run it.
 #' @export
@@ -72,7 +75,8 @@ semproducible <- function(x,
                           drop_non_numeric = FALSE,
                           vars_per_line = 9,
                           eval = FALSE,
-                          print = FALSE) {
+                          print = FALSE,
+                          template = NULL) {
   # Check inputs for errors.
   if ("matrix" %in% class(x)) {
     cor_mat <- x
@@ -98,10 +102,10 @@ semproducible <- function(x,
       non_numeric_colums <- paste(names(x[!sapply(x, is.numeric)]),
                                   collapse=" ")
       # Throw error.
-      stop(paste("x contain ", non_numeric_cols, " non-numeric column(s): ",
-                 trimws(non_numeric_colums),
-                 ". Use 'drop_non_numeric = TRUE' to drop them",
-                 " automatically, or remove them manually.", sep=""),
+      stop(paste("x contain ", non_numeric_cols, " non-numeric column(s).",
+                 " Use 'drop_non_numeric = TRUE' to remove them",
+                 " automatically, or remove them manually.\n",
+                 "Columns: ", trimws(non_numeric_colums), sep=""),
            call. = FALSE)
     }
   }
@@ -161,32 +165,11 @@ semproducible <- function(x,
   values <- substr(values, 1, nchar(values) - 1)
 
   # Code template.
-  code <- "library(tibble)
-library(lavaan)
-
-# Number of observations.
-observations <- %%OBSERVATIONS%%
-
-# Covariance matrix.
-%%TARGET%% <- tribble(%%VARIABLES%%
-%%VALUES%%)
-
-# Convert tibble to matrix (that lavaan can handle).
-%%TARGET%% <- as.matrix(%%TARGET%%)
-
-# Rows should have names too.
-rownames(%%TARGET%%) <- colnames(%%TARGET%%)
-
-# SEM model in lavaan syntax.
-model <- '%%FORMULA%%'
-
-# Fit SEM model.
-fit <- lavaan::sem(model = model,
-                   sample.cov = %%TARGET%%,
-                   sample.nobs = observations)
-
-# Show results.
-summary(fit)"
+  if (is.null(template)) {
+    code <- code_template()
+  } else {
+    code <- template
+  }
 
   # Replace placeholders with variable names and variable values.
   code <- gsub("%%OBSERVATIONS%%", num_observations, code)
@@ -212,7 +195,7 @@ summary(fit)"
 
   if (print) {
     # Only print the code to standard output (screen).
-    cat(code)
+    cat(code, "\n")
   } else {
     # Only return the code.
     return(code)
@@ -251,4 +234,68 @@ save_code <- function(code, filename, overwrite=FALSE) {
   fileConn <- file(filename)
   writeLines(code, fileConn)
   close(fileConn)
+}
+
+
+#' Code template that is used by semproducible to generate R code
+#'
+#' Use this template as a start for creating a custom template for your needs.
+#'
+#' There are several variables in the template that is replaced with the
+#' actual values. For instance:
+#'
+#' %%FORMULA%% will be replaced with the lavaan formula.
+#'
+#' %%OBSERVATIONS%% will be replaced with the number of observations of the
+#' actual data.
+#'
+#' %%TARGET%% will be replaced with the variable name of the covariance matrix.
+#'
+#' %%VARIABLES%% will be replaced with the column names (variable names) of the
+#' covariance matrix.
+#'
+#' %%VALUES%% will be replaced with the actual values of the covariance matrix.
+#'
+#' @return a character string with the code template.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Create random data.
+#' data <- data.frame(x = rnorm(100), y = rnorm(100))
+#'
+#' # Modify code template.
+#' template <- paste(code_template(), "\n# A comment placed at end of code")
+#'
+#' # Generate R code with the template.
+#' code <- semproducible(data, formula="y ~ x", template = template)
+#' }
+code_template <- function() {
+  code <- "library(tibble)
+library(lavaan)
+
+# Number of observations.
+observations <- %%OBSERVATIONS%%
+
+# Covariance matrix.
+%%TARGET%% <- tribble(%%VARIABLES%%
+%%VALUES%%)
+
+# Convert tibble to matrix (that lavaan can handle).
+%%TARGET%% <- as.matrix(%%TARGET%%)
+
+# Rows should have names too.
+rownames(%%TARGET%%) <- colnames(%%TARGET%%)
+
+# SEM model in lavaan syntax.
+model <- '%%FORMULA%%'
+
+# Fit SEM model.
+fit <- lavaan::sem(model = model,
+                   sample.cov = %%TARGET%%,
+                   sample.nobs = observations)
+
+# Show results.
+summary(fit)"
+  return(code)
 }
