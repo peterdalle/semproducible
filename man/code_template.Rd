@@ -2,7 +2,7 @@
 % Please edit documentation in R/semproducible.r
 \name{code_template}
 \alias{code_template}
-\title{Code template that is used by semproducible to generate R code}
+\title{Code template for R code}
 \usage{
 code_template()
 }
@@ -10,23 +10,26 @@ code_template()
 a character string with the code template.
 }
 \description{
-Use this template as a start for creating a custom template for your needs.
+Default code template with R code that is used when generating. For example,
+variables in the template code are replaced with the actual values during
+execution.
 }
 \details{
-There are several variables in the template that is replaced with the
-actual values. For instance:
+The following variables are placeholders and replaced with actual values:
 
-%%FORMULA%% will be replaced with the lavaan formula.
+\%\%FORMULA\%\% will be replaced with the lavaan formula.
 
-%%OBSERVATIONS%% will be replaced with the number of observations of the
+\%\%OBSERVATIONS\%\% will be replaced with the number of observations of the
 actual data.
 
-%%TARGET%% will be replaced with the variable name of the covariance matrix.
+\%\%TARGET\%\% will be replaced with the variable name of the covariance
+matrix.
 
-%%VARIABLES%% will be replaced with the column names (variable names) of the
-covariance matrix.
+\%\%VARIABLES\%\% will be replaced with the column names (variable names) of
+the covariance matrix.
 
-%%VALUES%% will be replaced with the actual values of the covariance matrix.
+\%\%VALUES\%\% will be replaced with the actual values of the covariance
+matrix.
 }
 \examples{
 \dontrun{

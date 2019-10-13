@@ -2,28 +2,29 @@
 #'
 #' Generate R code from your data frame or an existing covariance matrix.
 #' This is useful when you need to create a reproducible covariance matrix
-#' that can be used by a structural equation model (SEM) in lavaan.
+#' that can be used by a structural equation model (SEM) in \pkg{lavaan}.
 #'
 #' You supply a data frame with numeric variables (or a covariance matrix that
 #' you have already prepared). The function then generates R code that
 #' can reproduce the SEM model as a covariance matrix.
 #'
-#' @param x a data frame with numeric variables, or a matrix with correlations
-#' or covariances.
+#' @param x a data frame with numeric variables, or a covariance matrix.
 #' @param digits number of decimal digits. The default (NULL) will show all
 #' available digits as specified by R options. The higher the number of
 #' decimal digits, the more accurate the reproducible model will be.
-#' @param use optional character string for computing the
+#' @param use character string for computing the
 #' covariances in the presence of missing values. This must be one of the
 #' strings "everything", "all.obs", "complete.obs", "na.or.complete", or
-#' "pairwise.complete.obs". This value is passed on to the cov() method.
-#' @param target_variable target variable name for the generated covariance
-#' matrix. Defaults to "cov_mat".
-#' @param formula optional argument that specifies the lavaan formula syntax
-#' that should be included in the code.
-#' @param drop_non_numeric drop columns from the data frame that are not
-#' numeric. This is useful if you have characters of factors as columns which
-#' should not be included in the covariance matrix. Defaults to FALSE.
+#' "pairwise.complete.obs". This value is passed on to the \code{use} parameter
+#' of the \code{\link{cov}} function
+#' @param target_variable character string with arbitrary target variable name
+#' for the generated covariance matrix. Defaults to "cov_mat".
+#' @param formula character string with lavaan formula syntax that should be
+#' included in the code.
+#' @param drop_non_numeric whether or not non-numeric columns should be dropped
+#' from the data frame. This is useful if you have characters of factors as
+#' columns which should not be included in the covariance matrix. Defaults to
+#' FALSE.
 #' @param vars_per_line number of variables (or values) per line. Many
 #' variables per line will increase the width of the code.
 #' @param eval whether or not the generated code and lavaan model will be
@@ -33,11 +34,10 @@
 #' code as a character string (default). Printing to screen is useful during
 #' development.
 #' @param template a character string with a custom code template that
-#' is used when generating the R code. See the code_template() function for
-#' instructions on how to write your own template. A NULL value (default)
-#' will use the default template from code_template().
-#' @return a character string with the generated R code to reproduce the
-#' covariance matrix and the necessary lavaan code to run it.
+#' is used when generating the R code. See the \code{\link{code_template}}
+#' function for instructions on how to write your own template. A NULL value
+#' (default) will use the default template from \code{\link{code_template}}.
+#' @return a character string with the generated R code.
 #' @export
 #'
 #' @examples
@@ -106,7 +106,7 @@ semproducible <- function(x,
     }
   }
 
-  # Create covariance matrix if it's not already
+  # Create covariance matrix if it's not already.
   if (is.data.frame(x)) {
     cor_mat <- cov(x, use=use)
   }
@@ -154,7 +154,7 @@ semproducible <- function(x,
   values <- trimws(values, which = "right")
   values <- substr(values, 1, nchar(values) - 1)
 
-  # Code template.
+  # Use default or custom code template.
   if (is.null(template)) {
     code <- code_template()
   } else {
@@ -178,16 +178,14 @@ semproducible <- function(x,
       stop("No code was generated, cannot evaluate code or lavaan model.",
            call. = FALSE)
     }
-    # Run the generated code and stop if any errors are thrown.
     tryCatch(base::eval(parse(text = code)), error = function(e) stop(e))
     message("Code and lavaan model evaluated successfully.")
   }
 
+  # Print to screen or return.
   if (print) {
-    # Only print the code to standard output (screen).
     cat(code, "\n")
   } else {
-    # Only return the code.
     return(code)
   }
 }
@@ -195,9 +193,12 @@ semproducible <- function(x,
 
 #' Save code to a file
 #'
-#' @param code R code to save (character).
-#' @param filename filename of the file (character).
+#' Save generated code to a file. Does not overwrite existing files unless
+#' \code{overwrite} is set to \code{TRUE}.
 #'
+#' @param code character string with R code.
+#' @param filename character string with filename of the file to be saved.
+#' @param overwrite whether or not to overwrite an existing file.
 #' @export
 #'
 #' @examples
@@ -227,24 +228,27 @@ save_code <- function(code, filename, overwrite=FALSE) {
 }
 
 
-#' Code template that is used by semproducible to generate R code
+#' Code template for R code
 #'
-#' Use this template as a start for creating a custom template for your needs.
+#' Default code template with R code that is used when generating. For example,
+#' variables in the template code are replaced with the actual values during
+#' execution.
 #'
-#' There are several variables in the template that is replaced with the
-#' actual values. For instance:
+#' The following variables are placeholders and replaced with actual values:
 #'
-#' %%FORMULA%% will be replaced with the lavaan formula.
+#' \%\%FORMULA\%\% will be replaced with the lavaan formula.
 #'
-#' %%OBSERVATIONS%% will be replaced with the number of observations of the
+#' \%\%OBSERVATIONS\%\% will be replaced with the number of observations of the
 #' actual data.
 #'
-#' %%TARGET%% will be replaced with the variable name of the covariance matrix.
+#' \%\%TARGET\%\% will be replaced with the variable name of the covariance
+#' matrix.
 #'
-#' %%VARIABLES%% will be replaced with the column names (variable names) of the
-#' covariance matrix.
+#' \%\%VARIABLES\%\% will be replaced with the column names (variable names) of
+#' the covariance matrix.
 #'
-#' %%VALUES%% will be replaced with the actual values of the covariance matrix.
+#' \%\%VALUES\%\% will be replaced with the actual values of the covariance
+#' matrix.
 #'
 #' @return a character string with the code template.
 #' @export

@@ -10,27 +10,28 @@ semproducible(x, digits = NULL, use = "complete.obs",
   print = FALSE, template = NULL)
 }
 \arguments{
-\item{x}{a data frame with numeric variables, or a matrix with correlations
-or covariances.}
+\item{x}{a data frame with numeric variables, or a covariance matrix.}
 
 \item{digits}{number of decimal digits. The default (NULL) will show all
 available digits as specified by R options. The higher the number of
 decimal digits, the more accurate the reproducible model will be.}
 
-\item{use}{optional character string giving a method for computing
+\item{use}{character string for computing the
 covariances in the presence of missing values. This must be one of the
 strings "everything", "all.obs", "complete.obs", "na.or.complete", or
-"pairwise.complete.obs". This value is passed on to the cov() method.}
+"pairwise.complete.obs". This value is passed on to the \code{use} parameter
+of the \code{\link{cov}} function}
 
-\item{formula}{optional argument that specifies the lavaan formula syntax
-that should be included in the code.}
+\item{formula}{character string with lavaan formula syntax that should be
+included in the code.}
 
-\item{target_variable}{target variable name for the generated covariance
-matrix. Defaults to "cov_mat".}
+\item{target_variable}{character string with arbitrary target variable name
+for the generated covariance matrix. Defaults to "cov_mat".}
 
-\item{drop_non_numeric}{drop columns from the data frame that are not
-numeric. This is useful if you have characters of factors as columns which
-should not be included in the covariance matrix. Defaults to FALSE.}
+\item{drop_non_numeric}{whether or not non-numeric columns should be dropped
+from the data frame. This is useful if you have characters of factors as
+columns which should not be included in the covariance matrix. Defaults to
+FALSE.}
 
 \item{vars_per_line}{number of variables (or values) per line. Many
 variables per line will increase the width of the code.}
@@ -44,18 +45,17 @@ code as a character string (default). Printing to screen is useful during
 development.}
 
 \item{template}{a character string with a custom code template that
-is used when generating the R code. See the code_template() function for
-instructions on how to write your own template. A NULL value (default)
-will use the default template from code_template().}
+is used when generating the R code. See the \code{\link{code_template}}
+function for instructions on how to write your own template. A NULL value
+(default) will use the default template from \code{\link{code_template}}.}
 }
 \value{
-a character string with the generated R code to reproduce the
-covariance matrix and the necessary lavaan code to run it.
+a character string with the generated R code.
 }
 \description{
 Generate R code from your data frame or an existing covariance matrix.
 This is useful when you need to create a reproducible covariance matrix
-that can be used by a structural equation model (SEM) in lavaan.
+that can be used by a structural equation model (SEM) in \pkg{lavaan}.
 }
 \details{
 You supply a data frame with numeric variables (or a covariance matrix that

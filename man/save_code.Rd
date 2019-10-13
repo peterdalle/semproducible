@@ -7,12 +7,13 @@
 save_code(code, filename, overwrite = FALSE)
 }
 \arguments{
-\item{code}{R code to save (character).}
+\item{code}{character string with R code.}
 
-\item{filename}{filename of the file (character).}
+\item{filename}{character string with filename of the file to be saved.}
 }
 \description{
-Save code to a file
+Save generated code to a file. Does not overwrite existing files unless
+\code{overwrite} is set to \code{TRUE}.
 }
 \examples{
 \dontrun{
