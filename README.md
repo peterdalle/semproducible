@@ -117,40 +117,7 @@ fit_original <- lavaan::sem("Sepal.Length ~ Sepal.Width + Petal.Length", iris[, 
 summary(fit_original)
 ```
 
-Output using original data in lavaan:
-
-```
-lavaan 0.6-5 ended normally after 19 iterations
-
-  Estimator                                         ML
-  Optimization method                           NLMINB
-  Number of free parameters                          3
-                                                      
-  Number of observations                           150
-                                                      
-Model Test User Model:
-                                                      
-  Test statistic                                 0.000
-  Degrees of freedom                                 0
-
-Parameter Estimates:
-
-  Information                                 Expected
-  Information saturated (h1) model          Structured
-  Standard errors                             Standard
-
-Regressions:
-                   Estimate  Std.Err  z-value  P(>|z|)
-  Sepal.Length ~                                      
-    Sepal.Width       0.596    0.069    8.677    0.000
-    Petal.Length      0.472    0.017   27.849    0.000
-
-Variances:
-                   Estimate  Std.Err  z-value  P(>|z|)
-   .Sepal.Length      0.109    0.013    8.660    0.000
-```
-
-As you can see, the two outputs are identical, and we have successfully reproduced the model.
+As you can see if you run the code, the output is identical to the previous one, and we have successfully reproduced the model.
 
 # Questions
 
