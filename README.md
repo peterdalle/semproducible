@@ -245,3 +245,22 @@ code <- semproducible(iris[, 1:4], formula = "Sepal.Length ~ Sepal.Width + Petal
 If the code fails, you will get an error message.
 
 If the code runs successfully, semproducible will simply inform you of so and return your code (note: semproducible does not evaluate model fit or model convergence).
+
+# Documentation
+
+Run `?semproducible` in the R console to view the documentation.
+
+# Support
+
+Report problems or request a new feature by [submitting a new issue](https://github.com/peterdalle/semproducible/issues/new).
+
+# Contribute
+
+You can help with:
+
+- Test semproducible in your project and report any bugs.
+- Read the documentation and verify that it corresponds to actual behavior.
+
+# License
+
+[MIT](LICENSE)
