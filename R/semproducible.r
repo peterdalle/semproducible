@@ -108,7 +108,7 @@ semproducible <- function(x,
 
   # Create covariance matrix if it's not already.
   if (is.data.frame(x)) {
-    cor_mat <- cov(x, use=use)
+    cor_mat <- stats::cov(x, use=use)
   }
 
   # Get the number of observations in the data frame or matrix.
