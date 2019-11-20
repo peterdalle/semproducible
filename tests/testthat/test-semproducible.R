@@ -143,13 +143,13 @@ test_that("saving code files work", {
 
   tmp_file <- tempfile(fileext = ".r")
 
-  save_code(code, filename=tmp_file)
+  save_code(code, file = tmp_file)
 
   # This should give a warning that file already exists.
-  expect_error(save_code(code, filename=tmp_file))
+  expect_error(save_code(code, file = tmp_file))
 
   # This should work.
-  save_code(code, filename=tmp_file, overwrite = TRUE)
+  save_code(code, file = tmp_file, overwrite = TRUE)
 
   # Cleanup test file.
   file.remove(tmp_file)
@@ -165,14 +165,61 @@ test_that("evaluating code works", {
                         vars_per_line = 4,
                         digits = 3)
 
-  # This is a very hard (even unfair!) test because any change in the
-  # length of the generated code will throw this exception.
-  expect_equal(nchar(code), 533)
-
   # Use wrong variable names, should cause complaints by lavaan.
   expect_error(code <- semproducible(data, target_variable="tmp_var5",
                         formula = "y ~ VAR_DOES_NOT_EXIST",
                         vars_per_line = 4,
                         eval = TRUE))
 
+})
+
+
+test_that("using fitted lavaan object works", {
+  data <- data.frame(x = rnorm(100), y = rnorm(100))
+
+  fit <- lavaan::sem(model = "y ~ x", data = data)
+
+  # This should work
+  code <- semproducible(fit, target_variable="tmp_var6",
+                        formula = "y ~ x",
+                        vars_per_line = 3,
+                        digits = 6)
+
+  # Run the generated code.
+  eval(parse(text = code))
+
+  # Make sure the data type is correct.
+  expect_equal(class(tmp_var6), "matrix")
+
+  # Generated covariance matrix should be identical to original.
+  expect_equal(tmp_var6[c("x", "y"), c("x", "y")],
+               cov(data)[c("x", "y"), c("x", "y")], tolerance = 0.05)
+
+})
+
+
+test_that("more complex fitted lavaan object works", {
+  formula <- "visual  =~ x1 + x2 + x3
+              textual =~ x4 + x5 + x6
+              speed   =~ x7 + x8 + x9"
+
+  fit <- lavaan::sem(model = formula, data = lavaan::HolzingerSwineford1939)
+
+  # This should work
+  code <- semproducible(fit, target_variable="tmp_var7",
+                        formula = "y ~ x",
+                        vars_per_line = 3,
+                        digits = NULL)
+
+  # Run the generated code.
+  eval(parse(text = code))
+
+  # Make sure the data type is correct.
+  expect_equal(class(tmp_var7), "matrix")
+
+  # Generated covariance matrix should be identical to original.
+  data <- lavaan::HolzingerSwineford1939[c("x1", "x2", "x3",
+                                           "x4", "x5", "x6",
+                                           "x7", "x8", "x9")]
+  expect_equal(tmp_var7, cov(data), tolerance = 0.005)
 })
