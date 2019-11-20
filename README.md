@@ -1,13 +1,21 @@
 # semproducible - code generator for reproducible SEM models
 
-**semproducible** is an R package that can easily make your SEM models reproducible by generating all the necessary data and R code, with just one line of code.
+**semproducible** is an R package that can easily make your [lavaan](http://lavaan.ugent.be/) models reproducible by generating all the necessary data and R code, with just one line of code.
+
+The easiest way to reproduce your SEM model is to pass your lavaan object as an argument to semproducible: 
+
+```r
+semproducible(fit)
+```
+
+That's it!
 
 ## Benefits of semproducible
 
-- only one line of code is needed to get started
-- you can create reproducible models without making your raw data publicly accessible
-- the generated code can fit on a page in a journal article
-- other researchers can run your model and try out alternative model specifications
+- only one line of code is needed to reproduce your model
+- you don't need to make your raw data publicly accessible
+- the generated code can fit in a journal article or appendix
+- other researchers can try alternative model specifications
 
 In short, semproducible offers a good balance between open science, reproducibility, and integrity.
 
@@ -19,13 +27,53 @@ devtools::install_github("peterdalle/semproducible")
 
 # How it works
 
+You can use semproducible in two ways. Either you reproduce an existing model, or you reproduce all possible models in order for others to explore [researcher degrees of freedom](https://en.wikipedia.org/wiki/Researcher_degrees_of_freedom).
+
+Reproduce existing model:
+
+1. Pass your `lavaan` model to semproducible.
+2. Semproducible extracts the fitted (observed) covariance matrix from your model and the formula.
+3. Semproducible generates all R code for both the covariance matrix and code necessary to run the model.
+
+Reproduce all possible models:
+
 1. Give semproducible a data frame.
 2. Semproducible creates a covariance matrix of your data frame.
 3. Semproducible generates R code for both the covariance matrix and code necessary to run the SEM model using `lavaan`.
 
-# Example
+# Examples
 
-Let's use a toy example for demonstration purposes.
+## 1. Reproduce existing model
+
+```r
+library(lavaan)
+library(semproducible)
+
+# Example model from http://lavaan.ugent.be/tutorial/sem.html
+model <- "# latent variables
+            ind60 =~ x1 + x2 + x3
+            dem60 =~ y1 + y2 + y3 + y4
+            dem65 =~ y5 + y6 + y7 + y8
+          # regressions
+            dem60 ~ ind60
+            dem65 ~ ind60 + dem60
+          # residual covariances
+            y1 ~~ y5
+            y2 ~~ y4 + y6
+            y3 ~~ y7
+            y4 ~~ y8
+            y6 ~~ y8"
+
+# Fit SEM model.
+fit <- sem(model, data = PoliticalDemocracy)
+
+# Generate code to reproduce model.
+semproducible(fit, formula = model)
+```
+
+## 2. Reproduce all possible models
+
+Reproduce all possible SEM models with variables that was *not* included in the model:
 
 ```r
 library(semproducible)
@@ -121,27 +169,6 @@ As you can see if you run the code, the output is identical to the previous one,
 
 # Questions
 
-## Why not get the covariance matrix directly from lavaan?
-
-You can get the observed sample statistics using the [`lavInspect()`](https://rdrr.io/cran/lavaan/man/lavInspect.html) method, like so:
-
-```r
-fit <- lavaan::sem("Sepal.Length ~ Sepal.Width + Petal.Length", iris[, 1:4])
-lavInspect(fit, what = "sampstat")
-```
-
-Which will output the following:
-
-```
-$cov
-             Spl.Ln Spl.Wd Ptl.Ln
-Sepal.Length  0.681              
-Sepal.Width  -0.042  0.189       
-Petal.Length  1.266 -0.327  3.096
-```
-
-However, `$cov` only gives you the covariance matrix of the *fitted* model, not all possible models that you could have run with all the data.
-
 ## How do I save my code to a file?
 
 Use the `save_code()` function:
@@ -158,7 +185,7 @@ save_code(code, "my_file.r", overwrite = TRUE)
 
 ## Do I need to specify all columns?
 
-The default behavior is that semproducible requires you to specify which columns that will be used in the covariance matrix.
+When you want to reproduce all possible models, the default behavior is that semproducible requires you to specify which columns that will be used in the covariance matrix.
 
 Look at the `iris` dataset, for example:
 
@@ -178,13 +205,13 @@ head(iris)
 
 The column `Species` is a factor, which means that you will get an error if used with semproducible.
 
-However, use the `drop_non_numeric = TRUE` to automatically drop columns that is not numeric:
+Use `drop_non_numeric = TRUE` to automatically drop any column that is not numeric:
 
 ```r
 code <- semproducible(iris, drop_non_numeric = TRUE)
 ```
 
-The column `Species` is now dropped, which a message informs you of:
+The column `Species` is now dropped:
 
 ```
 Dropped 1 non-numeric column(s): Species 
@@ -192,9 +219,10 @@ Dropped 1 non-numeric column(s): Species
 
 ## How do I control the width of the code?
 
-If you have a large data frame you want to fit into the appendix of a journal article, you can control the number of values per line of the generated code with `vars_per_line = 2` for two variables/values per line.
+If you have a large data frame you want to fit on a page (e.g. journal article or appendix), you can control the physical width of the generated code. For example:
 
-You can also set `digits = 4` to round the number of decimals to four (default behavior is as many decimals as your current R session uses).
+- Set `vars_per_line = 2` to use two variables/values per line
+- Set `digits = 4` to round numbers into four decimals (the default behavior is to use as many decimals as your current R session)
 
 ```r
 semproducible(iris, drop_non_numeric = TRUE, vars_per_line = 2, digits = 4)
@@ -208,7 +236,6 @@ Output:
 # Covariance matrix.
 cov_mat <- tribble(~Sepal.Length, ~Sepal.Width, 
 ~Petal.Length, ~Petal.Width, 
-
 0.6857, -0.0424, 
 1.2743, 0.5163, 
 -0.0424, 0.19, 
@@ -234,21 +261,28 @@ iris %>%
     cat()
 ```
 
+Or directly after a lavaan object:
+
+```r
+sem(model, data = PoliticalDemocracy) %>%
+    semproducible()
+```
+
 ## How do I know that my generated code is correct?
 
-Add the `eval = TRUE` argument and the generated code will automatically run and evaluate. 
+Use the `eval = TRUE` argument to run and evaluate the code automatically. 
 
 ```r
 code <- semproducible(iris[, 1:4], formula = "Sepal.Length ~ Sepal.Width + Petal.Length", eval = TRUE)
 ```
 
-If the code fails, you will get an error message.
+If the code fails, you will get an error message. If the code runs successfully, semproducible will simply inform you of so and return your code. 
 
-If the code runs successfully, semproducible will simply inform you of so and return your code (note: semproducible does not evaluate model fit or model convergence).
+*Note: semproducible does not evaluate model fit or model convergence!*
 
 # Documentation
 
-Run `?semproducible` in the R console to view the documentation.
+Load semproducible and then run `?semproducible` in the R console to view the documentation.
 
 # Support
 
