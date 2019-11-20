@@ -1,42 +1,56 @@
-#' Code generator for reproducible covariance matrix
+#' Code generator for reproducible SEM models
 #'
-#' Generate R code from your data frame or an existing covariance matrix.
-#' This is useful when you need to create a reproducible covariance matrix
-#' that can be used by a structural equation model (SEM) in \pkg{lavaan}.
+#' Generate R code from your data frame, an existing covariance matrix, or
+#' a lavaan object. The R code reproduces your structural equation model (SEM)
+#' with minimal effort.
+#'
+#' Semproducible is useful when you need to create a reproducible covariance
+#' matrix that can be used by a structural equation model (SEM) in
+#' \code{\link[lavaan:sem]{lavaan}}.
 #'
 #' You supply a data frame with numeric variables (or a covariance matrix that
 #' you have already prepared). The function then generates R code that
 #' can reproduce the SEM model as a covariance matrix.
 #'
-#' @param x a data frame with numeric variables, or a covariance matrix.
-#' @param digits number of decimal digits. The default (NULL) will show all
-#' available digits as specified by R options. The higher the number of
-#' decimal digits, the more accurate the reproducible model will be.
-#' @param use character string for computing the
-#' covariances in the presence of missing values. This must be one of the
-#' strings "everything", "all.obs", "complete.obs", "na.or.complete", or
-#' "pairwise.complete.obs". This value is passed on to the \code{use} parameter
-#' of the \code{\link{cov}} function
+#' You can also directly supply a lavaan SEM model, and semproducible will use
+#' the fitted (observed) covariance matrix and produce R code that reproduce the
+#' model, using the estimator of your lavaan model. Note, however, that this
+#' will not give you all the possible models that you could have run with all
+#' the data, but only uses the variables that are passed to lavaan.
+#'
+#' @param x a data frame with numeric variables, a covariance matrix, or a
+#' lavaan object.
+#' @param digits number of decimal digits of the covariance matrix. The
+#' default (\code{NULL}) will show all available digits as specified by R
+#' options. The higher the number of decimal digits, the more accurate the
+#' reproducible model will be.
+#' @param use character string for computing the covariances in the presence
+#' of missing values. This must be "everything", "all.obs", "complete.obs",
+#' "na.or.complete", or "pairwise.complete.obs". This value is passed on to
+#' the \code{use} parameter of the \code{\link[stats:cor]{cov}} function
 #' @param target_variable character string with arbitrary target variable name
-#' for the generated covariance matrix. Defaults to "cov_mat".
-#' @param formula character string with lavaan formula syntax that should be
-#' included in the code.
+#' for the generated covariance matrix. Defaults to \code{cov_mat}.
+#' @param formula character string with a custom lavaan formula syntax
+#' (e.g. \code{y ~ x}) that should be included in the code. If formula is
+#' \code{NULL}, and \code{x} is a lavaan object, then a formula is created from
+#' the lavaan object.
 #' @param drop_non_numeric whether or not non-numeric columns should be dropped
 #' from the data frame. This is useful if you have characters of factors as
 #' columns which should not be included in the covariance matrix. Defaults to
-#' FALSE.
+#' \code{FALSE}.
 #' @param vars_per_line number of variables (or values) per line. Many
 #' variables per line will increase the width of the code.
 #' @param eval whether or not the generated code and lavaan model will be
-#' executed. If eval is set to TRUE, a message will tell you whether the
+#' executed. If eval is set to \code{TRUE}, a message will tell you whether the
 #' code executed withour errors or not.
 #' @param print whether or not to print the code to the screen or return the
 #' code as a character string (default). Printing to screen is useful during
 #' development.
 #' @param template a character string with a custom code template that
-#' is used when generating the R code. See the \code{\link{code_template}}
-#' function for instructions on how to write your own template. A NULL value
-#' (default) will use the default template from \code{\link{code_template}}.
+#' is used when generating the R code. See
+#' \code{\link{code_template}} for instructions on how to write
+#' your own template. A NULL value (default) will use the default template
+#' from \code{\link{code_template}}.
 #' @return a character string with the generated R code.
 #' @export
 #'
@@ -62,11 +76,20 @@
 #' # Save code to a file.
 #' code <- semproducible(data, formula="y ~ x")
 #' save_code(code, "create_data.r")
+#'
+#' # Reproduce the entire lavaan object.
+#' # Example from http://lavaan.ugent.be/tutorial/cfa.html
+#' library(lavaan)
+#' HS.model <- ' visual  =~ x1 + x2 + x3
+#'               textual =~ x4 + x5 + x6
+#'               speed   =~ x7 + x8 + x9 '
+#' fit <- cfa(HS.model, data=HolzingerSwineford1939)
+#' semproducible(fit)
 #' }
 semproducible <- function(x,
                           digits = NULL,
                           use = "complete.obs",
-                          formula = "YOUR lavaan MODEL HERE",
+                          formula = NULL,
                           target_variable = "cov_mat",
                           drop_non_numeric = FALSE,
                           vars_per_line = 9,
@@ -75,14 +98,18 @@ semproducible <- function(x,
                           template = NULL) {
   # Check inputs for errors.
   if ("matrix" %in% class(x)) {
-    cor_mat <- x
+    input_type <- "matrix"
+    cov_mat <- x
+  } else if ("lavaan" %in% class(x)) {
+    input_type <- "lavaan"
   } else if (is.data.frame(x)) {
+    input_type <- "data.frame"
   } else {
-    stop("x must be of type 'matrix' or 'data.frame'.")
+    stop("x must be of type 'matrix', 'data.frame' or 'lavaan'.")
   }
 
   # Check for non-numeric columns (doesn't apply to matrices).
-  if (is.data.frame(x)) {
+  if (input_type == "data.frame") {
     # Check that all columns are numeric, throw error if not.
     non_numeric_cols <- NCOL(x) - sum(sapply(x, is.numeric))
     if (drop_non_numeric & non_numeric_cols != 0) {
@@ -107,12 +134,41 @@ semproducible <- function(x,
   }
 
   # Create covariance matrix if it's not already.
-  if (is.data.frame(x)) {
-    cor_mat <- stats::cov(x, use=use)
+  if (input_type == "data.frame") {
+    cov_mat <- stats::cov(x, use=use)
   }
+
+  # Default lavaan call.
+  lavaan_call <- paste("lavaan::sem(model = model,",
+                       "sample.cov = %%TARGET%%,",
+                       "sample.nobs = observations)")
 
   # Get the number of observations in the data frame or matrix.
   num_observations <- NROW(x)
+
+  # Extract lavaan objects.
+  if (input_type == "lavaan") {
+    cov_mat <- lavaan::lavInspect(x, what = "sampstat")
+    if (class(cov_mat) == "list") {
+      cov_mat <- cov_mat$cov
+      num_observations <- lavaan::nobs(x)
+      # Get laavan call, replace name of data variable.
+      lavaan_call <- x@call
+      lavaan_call$data <- NULL
+      lavaan_call$sample.nobs <- "%NOBS%"
+      lavaan_call$sample.cov <- "%COV%"
+      lavaan_call <- paste0(utils::capture.output(lavaan_call), collapse="\n")
+      lavaan_call <- gsub('"%NOBS%"', "observations", lavaan_call)
+      lavaan_call <- gsub('"%COV%"', target_variable, lavaan_call)
+    }
+
+    # Extract lavaan parameter estimates and generate formula.
+    if (is.null(formula)) {
+      est <- lavaan::parameterEstimates(x)
+      formula <- paste(stringi::stri_c(est$lhs, " ", est$op, " ", est$rhs),
+                       collapse="\n")
+    }
+  }
 
   # Indenting covariance values.
   #indent <- paste0(rep(" ", 14), collapse = "")
@@ -121,7 +177,7 @@ semproducible <- function(x,
   # Generate variable names.
   var_names <- ""
   var_i <- 0
-  for (variable in row.names(cor_mat)) {
+  for (variable in row.names(cov_mat)) {
     var_i <- var_i + 1
     var_names <- stringi::stri_c(var_names, "~", variable, ", ")
     if (var_i >= vars_per_line) {
@@ -134,13 +190,13 @@ semproducible <- function(x,
   # Generate values.
   values <- ""
   var_i <- 0
-  for (i in seq.int(ncol(cor_mat))) {
-    for (j in seq(ncol(cor_mat))) {
+  for (i in seq.int(ncol(cov_mat))) {
+    for (j in seq(ncol(cov_mat))) {
       var_i <- var_i + 1
       if (is.null(digits)) {
-        value <- cor_mat[i, j]
+        value <- cov_mat[i, j]
       } else {
-        value <- round(cor_mat[i, j], digits=digits)
+        value <- round(cov_mat[i, j], digits=digits)
       }
       values <- stringi::stri_c(values, value, ", ", sep="")
       if (var_i >= vars_per_line) {
@@ -162,6 +218,7 @@ semproducible <- function(x,
   }
 
   # Replace placeholders with variable names and variable values.
+  code <- gsub("%%LAVAAN_CALL%%", lavaan_call, code)
   code <- gsub("%%OBSERVATIONS%%", num_observations, code)
   code <- gsub("%%FORMULA%%", formula, code)
   code <- gsub("%%TARGET%%", target_variable, code)
@@ -170,7 +227,7 @@ semproducible <- function(x,
 
   # Run the code to check for errors?
   if (eval) {
-    if (is.null(formula) || formula == "YOUR lavaan MODEL HERE") {
+    if (is.null(formula)) {
       stop("No lavaan formula specified, cannot evaluate lavaan model.",
            call. = FALSE)
     }
@@ -178,7 +235,8 @@ semproducible <- function(x,
       stop("No code was generated, cannot evaluate code or lavaan model.",
            call. = FALSE)
     }
-    tryCatch(base::eval(parse(text = code)), error = function(e) stop(e))
+    tryCatch(utils::capture.output(base::eval(parse(text = code))),
+             error = function(e) stop(e))
     message("Code and lavaan model evaluated successfully.")
   }
 
@@ -193,12 +251,14 @@ semproducible <- function(x,
 
 #' Save code to a file
 #'
-#' Save generated code to a file. Does not overwrite existing files unless
+#' Save generated R code to a file.
+#'
+#' Does not overwrite existing files unless
 #' \code{overwrite} is set to \code{TRUE}.
 #'
 #' @param code character string with R code.
-#' @param filename character string with filename of the file to be saved.
-#' @param overwrite whether or not to overwrite an existing file.
+#' @param file character string of the filename to be saved.
+#' @param overwrite whether the existing files should be overwritten.
 #' @export
 #'
 #' @examples
@@ -216,13 +276,13 @@ semproducible <- function(x,
 #' # You need to explicitly overwrite existing files.
 #' save_code(code, "create_data.r", overwrite = TRUE)
 #' }
-save_code <- function(code, filename, overwrite=FALSE) {
-  if (file.exists(filename) & !overwrite) {
-    stop(paste0("File '", filename, "' already exist.",
+save_code <- function(code, file, overwrite=FALSE) {
+  if (file.exists(file) & !overwrite) {
+    stop(paste0("File '", file, "' already exist.",
     " Use 'overwrite = TRUE' parameter to overwrite existing file."),
     call. = FALSE)
   }
-  fileConn <- file(filename)
+  fileConn <- file(file)
   writeLines(code, fileConn)
   close(fileConn)
 }
@@ -230,25 +290,27 @@ save_code <- function(code, filename, overwrite=FALSE) {
 
 #' Code template for R code
 #'
-#' Default code template with R code that is used when generating. For example,
-#' variables in the template code are replaced with the actual values during
-#' execution.
+#' Default R code template used by \code{\link{semproducible}} when generating
+#' the code.
 #'
-#' The following variables are placeholders and replaced with actual values:
+#' For example, variables in the template code are replaced with the actual
+#' values during execution.
 #'
-#' \%\%FORMULA\%\% will be replaced with the lavaan formula.
+#' The following variables are placeholders and will be replaced with the
+#' actual values:
 #'
-#' \%\%OBSERVATIONS\%\% will be replaced with the number of observations of the
-#' actual data.
+#' \code{\%\%FORMULA\%\%} = lavaan formula.
 #'
-#' \%\%TARGET\%\% will be replaced with the variable name of the covariance
-#' matrix.
+#' \code{\%\%OBSERVATIONS\%\%} = number of observations of the actual data.
 #'
-#' \%\%VARIABLES\%\% will be replaced with the column names (variable names) of
+#' \code{\%\%TARGET\%\%} = variable name of the covariance matrix.
+#'
+#' \code{\%\%VARIABLES\%\%} = column names (variable names) of
 #' the covariance matrix.
 #'
-#' \%\%VALUES\%\% will be replaced with the actual values of the covariance
-#' matrix.
+#' \code{\%\%VALUES\%\%} = actual values of the covariance matrix.
+#'
+#' \code{\%\%LAVAAN_CALL\%\%} = lavaan function call.
 #'
 #' @return a character string with the code template.
 #' @export
@@ -285,11 +347,10 @@ rownames(%%TARGET%%) <- colnames(%%TARGET%%)
 model <- '%%FORMULA%%'
 
 # Fit SEM model.
-fit <- lavaan::sem(model = model,
-                   sample.cov = %%TARGET%%,
-                   sample.nobs = observations)
+fit <- %%LAVAAN_CALL%%
 
 # Show results.
 summary(fit)"
   return(code)
 }
+
