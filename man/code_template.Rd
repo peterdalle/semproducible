@@ -10,26 +10,28 @@ code_template()
 a character string with the code template.
 }
 \description{
-Default code template with R code that is used when generating. For example,
-variables in the template code are replaced with the actual values during
-execution.
+Default R code template used by \code{\link{semproducible}} when generating
+the code.
 }
 \details{
-The following variables are placeholders and replaced with actual values:
+For example, variables in the template code are replaced with the actual
+values during execution.
 
-\%\%FORMULA\%\% will be replaced with the lavaan formula.
+The following variables are placeholders and will be replaced with the
+actual values:
 
-\%\%OBSERVATIONS\%\% will be replaced with the number of observations of the
-actual data.
+\code{\%\%FORMULA\%\%} = lavaan formula.
 
-\%\%TARGET\%\% will be replaced with the variable name of the covariance
-matrix.
+\code{\%\%OBSERVATIONS\%\%} = number of observations of the actual data.
 
-\%\%VARIABLES\%\% will be replaced with the column names (variable names) of
+\code{\%\%TARGET\%\%} = variable name of the covariance matrix.
+
+\code{\%\%VARIABLES\%\%} = column names (variable names) of
 the covariance matrix.
 
-\%\%VALUES\%\% will be replaced with the actual values of the covariance
-matrix.
+\code{\%\%VALUES\%\%} = actual values of the covariance matrix.
+
+\code{\%\%LAVAAN_CALL\%\%} = lavaan function call.
 }
 \examples{
 \dontrun{

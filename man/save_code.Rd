@@ -4,17 +4,20 @@
 \alias{save_code}
 \title{Save code to a file}
 \usage{
-save_code(code, filename, overwrite = FALSE)
+save_code(code, file, overwrite = FALSE)
 }
 \arguments{
 \item{code}{character string with R code.}
 
-\item{filename}{character string with filename of the file to be saved.}
+\item{file}{character string of the filename to be saved.}
 
-\item{overwrite}{whether or not to overwrite an existing file.}
+\item{overwrite}{whether the existing files should be overwritten.}
 }
 \description{
-Save generated code to a file. Does not overwrite existing files unless
+Save generated R code to a file.
+}
+\details{
+Does not overwrite existing files unless
 \code{overwrite} is set to \code{TRUE}.
 }
 \examples{
