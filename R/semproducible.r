@@ -43,9 +43,6 @@
 #' @param eval whether or not the generated code and lavaan model will be
 #' executed. If eval is set to \code{TRUE}, a message will tell you whether the
 #' code executed withour errors or not.
-#' @param print whether or not to print the code to the screen or return the
-#' code as a character string (default). Printing to screen is useful during
-#' development.
 #' @param template a character string with a custom code template that
 #' is used when generating the R code. See
 #' \code{\link{code_template}} for instructions on how to write
@@ -94,7 +91,6 @@ semproducible <- function(x,
                           drop_non_numeric = FALSE,
                           vars_per_line = 9,
                           eval = FALSE,
-                          print = FALSE,
                           template = NULL) {
   # Check inputs for errors.
   if ("matrix" %in% class(x)) {
@@ -239,13 +235,7 @@ semproducible <- function(x,
              error = function(e) stop(e))
     message("Code and lavaan model evaluated successfully.")
   }
-
-  # Print to screen or return.
-  if (print) {
-    cat(code, "\n")
-  } else {
-    return(code)
-  }
+  return(code)
 }
 
 
