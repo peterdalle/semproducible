@@ -27,15 +27,15 @@ devtools::install_github("peterdalle/semproducible")
 
 # How it works
 
-You can use semproducible in two ways. Either you reproduce an existing model, or you reproduce all possible models in order for others to explore [researcher degrees of freedom](https://en.wikipedia.org/wiki/Researcher_degrees_of_freedom).
+You can use semproducible in two ways.
 
-Reproduce existing model:
+The first way is to reproduce an existing model:
 
 1. Pass your `lavaan` model to semproducible.
-2. Semproducible extracts the fitted (observed) covariance matrix from your model and the formula.
+2. Semproducible extracts the fitted (observed) covariance matrix from your model and the formula syntax.
 3. Semproducible generates all R code for both the covariance matrix and code necessary to run the model.
 
-Reproduce all possible models:
+The second way is to reproduce all possible models in order to explore [researcher degrees of freedom](https://en.wikipedia.org/wiki/Researcher_degrees_of_freedom) or perform a multiverse or [sensitivity analysis](https://en.wikipedia.org/wiki/Sensitivity_analysis):
 
 1. Give semproducible a data frame.
 2. Semproducible creates a covariance matrix of your data frame.
@@ -68,7 +68,10 @@ model <- "# latent variables
 fit <- sem(model, data = PoliticalDemocracy)
 
 # Generate code to reproduce model.
-semproducible(fit, formula = model)
+code <- semproducible(fit, formula = model)
+
+# Show the generated code.
+cat(code)
 ```
 
 ## 2. Reproduce all possible models
@@ -84,7 +87,7 @@ df <- iris[, 1:4]
 # Use the data frame with iris data and specify a lavaan model.
 code <- semproducible(df, formula = "Sepal.Length ~ Sepal.Width + Petal.Length")
 
-# Show the code that semproducible generated.
+# Show the generated code.
 cat(code)
 ```
 

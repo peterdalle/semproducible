@@ -2,7 +2,7 @@
 % Please edit documentation in R/semproducible.r
 \name{code_template}
 \alias{code_template}
-\title{Code template for R code}
+\title{Template for the generated R code}
 \usage{
 code_template()
 }
@@ -14,24 +14,22 @@ Default R code template used by \code{\link{semproducible}} when generating
 the code.
 }
 \details{
-For example, variables in the template code are replaced with the actual
-values during execution.
+The template is a string with R code that contain placeholders in the form
+of variables like \code{\%\%NAME\%\%}. The variables are replaced with
+actual content of the SEM model during code generation.
 
-The following variables are placeholders and will be replaced with the
-actual values:
+Placeholder variables:
 
-\code{\%\%FORMULA\%\%} = lavaan formula.
-
-\code{\%\%OBSERVATIONS\%\%} = number of observations of the actual data.
-
-\code{\%\%TARGET\%\%} = variable name of the covariance matrix.
-
-\code{\%\%VARIABLES\%\%} = column names (variable names) of
+\itemize{
+\item{\code{\%\%FORMULA\%\%}} = \code{\link[lavaan:sem]{lavaan}} formula.
+\item{\code{\%\%OBSERVATIONS\%\%}} = number of observations of the actual data.
+\item{\code{\%\%TARGET\%\%}} = variable name of the covariance matrix.
+\item{\code{\%\%VARIABLES\%\%}} = column names (variable names) of
 the covariance matrix.
-
-\code{\%\%VALUES\%\%} = actual values of the covariance matrix.
-
-\code{\%\%LAVAAN_CALL\%\%} = lavaan function call.
+\item{\code{\%\%VALUES\%\%}} = actual values of the covariance matrix.
+\item{\code{\%\%LAVAAN_CALL\%\%}} = \code{\link[lavaan:sem]{lavaan}} function
+call.
+}
 }
 \examples{
 \dontrun{
@@ -39,7 +37,7 @@ the covariance matrix.
 data <- data.frame(x = rnorm(100), y = rnorm(100))
 
 # Modify code template.
-template <- paste(code_template(), "\\n# A comment placed at end of code")
+template <- paste(code_template(), "\n# A comment placed at end of code")
 
 # Generate R code with the template.
 code <- semproducible(data, formula="y ~ x", template = template)

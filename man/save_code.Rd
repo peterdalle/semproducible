@@ -2,7 +2,7 @@
 % Please edit documentation in R/semproducible.r
 \name{save_code}
 \alias{save_code}
-\title{Save code to a file}
+\title{Save generated code to a file}
 \usage{
 save_code(code, file, overwrite = FALSE)
 }
@@ -14,11 +14,8 @@ save_code(code, file, overwrite = FALSE)
 \item{overwrite}{whether the existing files should be overwritten.}
 }
 \description{
-Save generated R code to a file.
-}
-\details{
-Does not overwrite existing files unless
-\code{overwrite} is set to \code{TRUE}.
+Helper function that saves generated R code to a file. Does not overwrite
+existing files unless \code{overwrite} is explicitly set to \code{TRUE}.
 }
 \examples{
 \dontrun{
@@ -31,8 +28,7 @@ code <- semproducible(data, formula="y ~ x")
 # Save R code to file.
 save_code(code, "create_data.r")
 
-# If the file already exists, you will get an error.
-# You need to explicitly overwrite existing files.
+# Save again, but the file exists so overwrite=TRUE is necessary.
 save_code(code, "create_data.r", overwrite = TRUE)
 }
 }

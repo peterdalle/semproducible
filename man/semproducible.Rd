@@ -2,25 +2,24 @@
 % Please edit documentation in R/semproducible.r
 \name{semproducible}
 \alias{semproducible}
-\title{Code generator for reproducible SEM models}
+\title{Generate R code to reproduce a SEM model}
 \usage{
-semproducible(x, digits = NULL, use = "complete.obs", formula = NULL,
-  target_variable = "cov_mat", drop_non_numeric = FALSE,
-  vars_per_line = 9, eval = FALSE, print = FALSE, template = NULL)
+semproducible(
+  x,
+  formula = NULL,
+  target_variable = "cov_mat",
+  digits = NULL,
+  drop_non_numeric = FALSE,
+  vars_per_line = 9,
+  eval = FALSE,
+  use = "complete.obs",
+  template = NULL
+)
 }
 \arguments{
-\item{x}{a data frame with numeric variables, a covariance matrix, or a
-lavaan object.}
-
-\item{digits}{number of decimal digits of the covariance matrix. The
-default (\code{NULL}) will show all available digits as specified by R
-options. The higher the number of decimal digits, the more accurate the
-reproducible model will be.}
-
-\item{use}{character string for computing the covariances in the presence
-of missing values. This must be "everything", "all.obs", "complete.obs",
-"na.or.complete", or "pairwise.complete.obs". This value is passed on to
-the \code{use} parameter of the \code{\link[stats:cor]{cov}} function}
+\item{x}{a \code{\link[base:data.frame]{data.frame}} with numeric variables,
+a \code{\link[base:matrix]{matrix}} with covariances, or a
+\code{\link[lavaan:sem]{lavaan}} object.}
 
 \item{formula}{character string with a custom lavaan formula syntax
 (e.g. \code{y ~ x}) that should be included in the code. If formula is
@@ -30,53 +29,51 @@ the lavaan object.}
 \item{target_variable}{character string with arbitrary target variable name
 for the generated covariance matrix. Defaults to \code{cov_mat}.}
 
-\item{drop_non_numeric}{whether or not non-numeric columns should be dropped
+\item{digits}{number of decimal digits of the covariance matrix. The
+default (\code{NULL}) will show all available digits as specified by R
+options. The higher the number of decimal digits, the more accurate the
+reproducible model will be.}
+
+\item{drop_non_numeric}{whether non-numeric columns should be dropped
 from the data frame. This is useful if you have characters of factors as
 columns which should not be included in the covariance matrix. Defaults to
 \code{FALSE}.}
 
-\item{vars_per_line}{number of variables (or values) per line. Many
-variables per line will increase the width of the code.}
+\item{vars_per_line}{number of variables/values per line. Use a low
+value to decrease the width of the generated code.}
 
-\item{eval}{whether or not the generated code and lavaan model will be
-executed. If eval is set to \code{TRUE}, a message will tell you whether the
-code executed withour errors or not.}
+\item{eval}{whether the generated code and \code{\link[lavaan:sem]{lavaan}}
+model will be executed during generation. If \code{TRUE}, a message will
+tell you whether the code executed without errors or not.}
 
-\item{print}{whether or not to print the code to the screen or return the
-code as a character string (default). Printing to screen is useful during
-development.}
+\item{use}{character string for computing the covariances in the presence
+of missing values. This must be \code{everything}, \code{all.obs},
+\code{complete.obs}, \code{na.or.complete}, or \code{pairwise.complete.obs}.
+This value is passed on to the \code{use} parameter of the
+\code{\link[stats:cor]{cov}} function.}
 
 \item{template}{a character string with a custom code template that
-is used when generating the R code. See
-\code{\link{code_template}} for instructions on how to write
-your own template. A NULL value (default) will use the default template
-from \code{\link{code_template}}.}
+is used when generating the R code. A \code{NULL} value (default) will use
+the default template from \code{\link{code_template}}.}
 }
 \value{
 a character string with the generated R code.
 }
 \description{
 Generate R code from your data frame, an existing covariance matrix, or
-a lavaan object. The R code reproduces your structural equation model (SEM)
-with minimal effort.
+a \code{lavaan} object. The R code reproduces your structural equation model
+(SEM) to support open science with minimal effort, and makes it easy to
+supply your code to a journal article, or to share your model with others
+without sharing your full dataset that may contain sensitive information.
 }
 \details{
-Semproducible is useful when you need to create a reproducible covariance
-matrix that can be used by a structural equation model (SEM) in
-\code{\link[lavaan:sem]{lavaan}}.
 
-You supply a data frame with numeric variables (or a covariance matrix that
-you have already prepared). The function then generates R code that
-can reproduce the SEM model as a covariance matrix.
-
-You can also directly supply a lavaan SEM model, and semproducible will use
-the fitted (observed) covariance matrix and produce R code that reproduce the
-model, using the estimator of your lavaan model. Note, however, that this
-will not give you all the possible models that you could have run with all
-the data, but only uses the variables that are passed to lavaan.
 }
 \examples{
 \dontrun{
+library(semproducible)
+library(lavaan)
+
 # Create random data.
 set.seed(5543)
 data <- data.frame(x = rnorm(100),
@@ -86,25 +83,25 @@ data <- data.frame(x = rnorm(100),
                    q = rnorm(100))
 
 # Generate R code for the data.
-cat(semproducible(data, formula="y ~ x"))
+code <- semproducible(data, formula="y ~ x")
 
 # Use 5 decimal digits.
-cat(semproducible(data, formula="y ~ x", digits=5))
+code <- semproducible(data, formula="y ~ x", digits=5)
 
 # Restrict number of values per line to 4.
-cat(semproducible(data, formula="y ~ x", digits=5, vars_per_line=4))
+code <- semproducible(data, formula="y ~ x", digits=5, vars_per_line=4)
+
+# View code.
+cat(code)
 
 # Save code to a file.
-code <- semproducible(data, formula="y ~ x")
 save_code(code, "create_data.r")
 
-# Reproduce the entire lavaan object.
-# Example from http://lavaan.ugent.be/tutorial/cfa.html
-library(lavaan)
+# Reproduce lavaan object (from http://lavaan.ugent.be/tutorial/cfa.html)
 HS.model <- ' visual  =~ x1 + x2 + x3
               textual =~ x4 + x5 + x6
               speed   =~ x7 + x8 + x9 '
 fit <- cfa(HS.model, data=HolzingerSwineford1939)
-semproducible(fit)
+code <- semproducible(fit)
 }
 }
