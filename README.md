@@ -91,7 +91,9 @@ code <- semproducible(df, formula = "Sepal.Length ~ Sepal.Width + Petal.Length")
 cat(code)
 ```
 
-Generated code output:
+# Look at the generated code
+
+If you run example 2 above, the generated code will look something like this:
 
 ```r
 library(tibble)
@@ -123,9 +125,7 @@ fit <- lavaan::sem(model, sample.cov = cov_mat, sample.nobs = observations)
 summary(fit)
 ```
 
-Now, let's run the generated code above.
-
-Output when using the covariance matrix in lavaan:
+Let's run the generated code above. The output should look similar to this:
 
 ```
 lavaan 0.6-5 ended normally after 19 iterations
@@ -158,9 +158,7 @@ Variances:
    .Sepal.Length      0.109    0.013    8.660    0.000
 ```
 
-The code seems to work, but how does it compare to the original dataset?
-
-Let's run a model on the original data and compare its output:
+The code seems to work, but how does it compare to the original dataset? Let's run a model on the original data and compare its output:
 
 ```r
 fit_original <- lavaan::sem("Sepal.Length ~ Sepal.Width + Petal.Length", iris[, 1:4])
@@ -168,7 +166,7 @@ fit_original <- lavaan::sem("Sepal.Length ~ Sepal.Width + Petal.Length", iris[, 
 summary(fit_original)
 ```
 
-As you can see if you run the code, the output is identical to the previous one, and we have successfully reproduced the model.
+As you can see (if you run the code), the output is identical to the previous one, and we have successfully reproduced the model.
 
 # Questions
 
