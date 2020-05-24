@@ -18,25 +18,25 @@ semproducible(
 }
 \arguments{
 \item{x}{a \code{\link[base:data.frame]{data.frame}} with numeric variables,
-a \code{\link[base:matrix]{matrix}} with covariances, or a
-\code{\link[lavaan:sem]{lavaan}} object.}
+a \code{\link[base:matrix]{matrix}} with covariances, or a fitted
+\code{\link[lavaan:sem]{lavaan}} object that you want to reproduce.}
 
 \item{formula}{character string with a custom lavaan formula syntax
 (e.g. \code{y ~ x}) that should be included in the code. If formula is
-\code{NULL}, and \code{x} is a lavaan object, then a formula is created from
-the lavaan object.}
+\code{NULL}, and \code{x} is a lavaan object, then a formula is generated
+automatically from the lavaan object.}
 
 \item{target_variable}{character string with arbitrary target variable name
-for the generated covariance matrix. Defaults to \code{cov_mat}.}
+for the generated covariance matrix. Defaults to \code{"cov_mat"}.}
 
 \item{digits}{number of decimal digits of the covariance matrix. The
-default (\code{NULL}) will show all available digits as specified by R
+default (\code{NULL}) will show all available digits as specified by your R
 options. The higher the number of decimal digits, the more accurate the
 reproducible model will be.}
 
 \item{drop_non_numeric}{whether non-numeric columns should be dropped
-from the data frame. This is useful if you have characters of factors as
-columns which should not be included in the covariance matrix. Defaults to
+from the data frame. This is useful if you have characters or factors as
+columns, which should be excluded from the covariance matrix. Defaults to
 \code{FALSE}.}
 
 \item{vars_per_line}{number of variables/values per line. Use a low
@@ -44,13 +44,13 @@ value to decrease the width of the generated code.}
 
 \item{eval}{whether the generated code and \code{\link[lavaan:sem]{lavaan}}
 model will be executed during generation. If \code{TRUE}, a message will
-tell you whether the code executed without errors or not.}
+tell you whether the code executed with errors or not.}
 
 \item{use}{character string for computing the covariances in the presence
-of missing values. This must be \code{everything}, \code{all.obs},
-\code{complete.obs}, \code{na.or.complete}, or \code{pairwise.complete.obs}.
-This value is passed on to the \code{use} parameter of the
-\code{\link[stats:cor]{cov}} function.}
+of missing values. This value is simply passed on to the \code{use}
+parameter of the \code{\link[stats:cor]{cov}} function. The value must be
+\code{everything}, \code{all.obs}, \code{complete.obs},
+\code{na.or.complete}, or \code{pairwise.complete.obs}.}
 
 \item{template}{a character string with a custom code template that
 is used when generating the R code. A \code{NULL} value (default) will use
