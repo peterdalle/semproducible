@@ -10,7 +10,9 @@ semproducible(fit)
 
 That's it!
 
-## Benefits of semproducible
+![](demo.gif)
+
+# Benefits of semproducible
 
 - only one line of code is needed to reproduce your model
 - you don't need to make your raw data publicly accessible
