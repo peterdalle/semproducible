@@ -18,7 +18,7 @@ test_that("generating R code from original data works", {
   eval(parse(text = code))
 
   # Make sure the data type is correct.
-  expect_equal(class(tmp_var), "matrix")
+  expect_equal(class(tmp_var)[[1]], "matrix")
 
   # All values should be the same (digits will be different on different
   # systems so we need to use rounding to get the same number of digits).
@@ -39,14 +39,13 @@ test_that("different vars_per_line work", {
 
   # Test different vars_per_line (from -1 to 30) and run the code.
   for (i in -1:30) {
-    cat("Testing vars_per_line =", i, "\n")
     eval(parse(text = semproducible(data,
                                     target_variable = "tmp_var_test",
                                     formula = "y ~ x + z + w",
                                     vars_per_line = i)))
 
     # Variable should be a matrix if code successfully ran.
-    expect_equal(class(tmp_var_test), "matrix")
+    expect_equal(class(tmp_var_test)[[1]], "matrix")
     expect_type(tmp_var_test, "double")
 
     # Variable should be lavaan object.
@@ -81,7 +80,7 @@ test_that("covariance matrix as input works", {
   eval(parse(text = code))
 
   # Make sure the data type is correct.
-  expect_equal(class(tmp_var2), "matrix")
+  expect_equal(class(tmp_var2)[[1]], "matrix")
 
   # All values should be the same (digits will be different on different
   # systems so we need to use rounding to get the same number of digits).
@@ -120,7 +119,7 @@ test_that("non-numeric input parameters are handled correctly", {
   eval(parse(text = code))
 
   # Make sure the data type is correct.
-  expect_equal(class(tmp_var3), "matrix")
+  expect_equal(class(tmp_var3)[[1]], "matrix")
 
   # All values should be the same (digits will be different on different
   # systems so we need to use rounding to get the same number of digits).
@@ -188,9 +187,6 @@ test_that("using fitted lavaan object works", {
   # Run the generated code.
   eval(parse(text = code))
 
-  # Make sure the data type is correct.
-  expect_equal(class(tmp_var6), "matrix")
-
   # Generated covariance matrix should be identical to original.
   expect_equal(tmp_var6[c("x", "y"), c("x", "y")],
                cov(data)[c("x", "y"), c("x", "y")], tolerance = 0.05)
@@ -214,12 +210,41 @@ test_that("more complex fitted lavaan object works", {
   # Run the generated code.
   eval(parse(text = code))
 
-  # Make sure the data type is correct.
-  expect_equal(class(tmp_var7), "matrix")
-
   # Generated covariance matrix should be identical to original.
   data <- lavaan::HolzingerSwineford1939[c("x1", "x2", "x3",
                                            "x4", "x5", "x6",
                                            "x7", "x8", "x9")]
   expect_equal(tmp_var7, cov(data), tolerance = 0.005)
+})
+
+
+test_that("compare lavaan covariance with semproducible covariances", {
+  set.seed(8324)
+
+  # Compare 100 random covariance matrices.
+  for (i in 1:100) {
+    data <- data.frame(x = rnorm(1000),
+                       y = rnorm(1000),
+                       z = rnorm(1000),
+                       w = rnorm(1000),
+                       q = rnorm(1000))
+
+    # Make lavaan model.
+    formula = "y ~ x + z + w + q"
+    lavaan_model <- lavaan::sem(formula, data)
+
+    # Reproduce model with semproducible.
+    code <- semproducible(data, target_variable = "tmp_var8",
+                          formula = formula, digits = 10)
+    eval(parse(text = code))
+
+    # Compare lavaan + semproducible output.
+    lavaan_cov <- lavInspect(lavaan_model, what="sampstat")$cov
+    expect_equal(lavaan_cov["y", "y"], tmp_var8["y", "y"], tolerance=0.01)
+    expect_equal(lavaan_cov["x", "y"], tmp_var8["x", "y"], tolerance=0.01)
+    expect_equal(lavaan_cov["z", "y"], tmp_var8["z", "y"], tolerance=0.01)
+    expect_equal(lavaan_cov["w", "y"], tmp_var8["w", "y"], tolerance=0.01)
+    expect_equal(lavaan_cov["q", "y"], tmp_var8["q", "y"], tolerance=0.01)
+    expect_equal(lavaan_cov["q", "q"], tmp_var8["q", "q"], tolerance=0.01)
+  }
 })
