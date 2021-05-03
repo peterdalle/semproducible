@@ -91,86 +91,98 @@
 semproducible <- function(x, formula = NULL, target_variable = "cov_mat",
                           digits = NULL, drop_non_numeric = FALSE,
                           vars_per_line = 9, eval = FALSE, use = "complete.obs",
-                          template = NULL) {
-  # Check inputs for errors.
-  if ("matrix" %in% class(x)) {
-    input_type <- "matrix"
-    cov_mat <- x
-  } else if ("lavaan" %in% class(x)) {
-    input_type <- "lavaan"
-  } else if (is.data.frame(x)) {
-    input_type <- "data.frame"
-  } else {
-    stop("x must be of type 'matrix', 'data.frame' or 'lavaan'.")
+                          code_template = NULL) {
+  if (!(is.matrix(x) | is.data.frame(x) | inherits(x, "lavaan"))) {
+    stop("x must be of type 'matrix', 'data.frame' or 'lavaan'.", call. = FALSE)
   }
-
-  # Check for non-numeric columns (doesn't apply to matrices).
-  if (input_type == "data.frame") {
-    # Check that all columns are numeric, throw error if not.
-    non_numeric_cols <- NCOL(x) - sum(sapply(x, is.numeric))
-    if (drop_non_numeric & non_numeric_cols != 0) {
-      # Drop all non-numeric columns.
-      x_raw <- x
-      x <- x[sapply(x, is.numeric)]
-      num_columns_dropped <- NCOL(x_raw) - NCOL(x)
-      columns_dropped <- paste(names(setdiff(x_raw, x)), collapse=" ")
-      message(paste("Dropped", num_columns_dropped, "non-numeric column(s):",
-                    columns_dropped, sep=" "))
-    } else if (non_numeric_cols != 0) {
-      # Get name of non-numeric columns.
-      non_numeric_colums <- paste(names(x[!sapply(x, is.numeric)]),
-                                  collapse=" ")
-      # Throw error.
-      stop(paste("x contain ", non_numeric_cols, " non-numeric column(s).",
-                 " Use 'drop_non_numeric = TRUE' to remove them",
-                 " automatically, or remove them manually.\n",
-                 "Columns: ", trimws(non_numeric_colums), sep=""),
-           call. = FALSE)
-    }
+  params <- list()
+  params$call <- get_default_lavaan_call()
+  params$num_observations <- NROW(x)
+  params$formula <- ifelse(is.null(formula), "", formula)
+  if (is.null(target_variable)) {
+    stop("'target_variable' cannot be empty.", call. = FALSE)
   }
-
-  # Create covariance matrix if it's not already.
-  if (input_type == "data.frame") {
+  if (is.data.frame(x)) {
+    x <- check_non_numeric_columns_and_drop(x, drop_non_numeric)
     cov_mat <- stats::cov(x, use=use)
+  } else if (is.matrix(x)) {
+    cov_mat <- x
+  } else if (inherits(x, "lavaan")) {
+    params <- extract_lavaan_parameters(x, formula, target_variable)
+    cov_mat <- params$cov_mat
   }
+  code_template <- ifelse(is.null(code_template), code_template(), code_template)
+  params$target_variable <- target_variable
+  params$var_names <- generate_variable_names(cov_mat, vars_per_line)
+  params$values <- generate_values(cov_mat, vars_per_line, digits)
+  code <- replace_code_template_placeholders(params, code_template)
+  run_and_eval_code(eval, params$formula, code)
+  return(code)
+}
 
-  # Default lavaan call.
-  lavaan_call <- paste("lavaan::sem(model = model,",
-                       "sample.cov = %%TARGET%%,",
-                       "sample.nobs = observations)")
 
-  # Get the number of observations in the data frame or matrix.
-  num_observations <- NROW(x)
-
-  # Extract lavaan objects.
-  if (input_type == "lavaan") {
-    cov_mat <- lavaan::lavInspect(x, what = "sampstat")
-    if (class(cov_mat) == "list") {
-      cov_mat <- cov_mat$cov
-      num_observations <- lavaan::nobs(x)
-      # Get laavan call, replace name of data variable.
-      lavaan_call <- x@call
-      lavaan_call$data <- NULL
-      lavaan_call$sample.nobs <- "%NOBS%"
-      lavaan_call$sample.cov <- "%COV%"
-      lavaan_call <- paste0(utils::capture.output(lavaan_call), collapse="\n")
-      lavaan_call <- gsub('"%NOBS%"', "observations", lavaan_call)
-      lavaan_call <- gsub('"%COV%"', target_variable, lavaan_call)
-    }
-
-    # Extract lavaan parameter estimates and generate formula.
-    if (is.null(formula)) {
-      est <- lavaan::parameterEstimates(x)
-      formula <- paste(stringi::stri_c(est$lhs, " ", est$op, " ", est$rhs),
-                       collapse="\n")
-    }
+check_non_numeric_columns_and_drop <- function(x, drop_non_numeric) {
+  non_numeric_cols <- NCOL(x) - sum(sapply(x, is.numeric))
+  if (drop_non_numeric & non_numeric_cols != 0) {
+    x <- drop_non_numeric_columns(x)
+  } else if (non_numeric_cols != 0) {
+    non_numeric_colums <- paste(names(x[!sapply(x, is.numeric)]),
+                                collapse=" ")
+    stop(paste("x contain ", non_numeric_cols, " non-numeric column(s).",
+               " Use 'drop_non_numeric = TRUE' to remove them",
+               " automatically, or remove them manually.\n",
+               "Columns: ", trimws(non_numeric_colums), sep=""),
+         call. = FALSE)
   }
+  return(x)
+}
 
-  # Indenting covariance values.
-  #indent <- paste0(rep(" ", 14), collapse = "")
-  indent <- " "
 
-  # Generate variable names.
+drop_non_numeric_columns <- function(x) {
+  x_raw <- x
+  x <- x[sapply(x, is.numeric)]
+  num_columns_dropped <- NCOL(x_raw) - NCOL(x)
+  columns_dropped <- paste(names(base::setdiff(x_raw, x)), collapse=" ")
+  message(paste("Dropped", num_columns_dropped, "non-numeric column(s):",
+                columns_dropped, sep=" "))
+  return(x)
+}
+
+
+extract_lavaan_parameters <- function(x, formula, target_variable) {
+  cov_mat <- lavaan::lavInspect(x, what = "sampstat")
+  num_observations <- lavaan::nobs(x)
+  if (class(cov_mat) == "list") {
+    cov_mat <- cov_mat$cov
+    call <- x@call
+    call$data <- NULL
+    call$sample.nobs <- "%NOBS%"
+    call$sample.cov <- "%COV%"
+    call <- paste0(utils::capture.output(call), collapse="\n")
+    call <- gsub('"%NOBS%"', "observations", call)
+    call <- gsub('"%COV%"', target_variable, call)
+  }
+  if (is.null(formula)) {
+    call <- get_default_lavaan_call()
+    est <- lavaan::parameterEstimates(x)
+    formula <- paste(stringi::stri_c(est$lhs, " ", est$op, " ", est$rhs),
+                     collapse="\n")
+  }
+  return(list(call = call,
+              formula = formula,
+              cov_mat = cov_mat,
+              num_observations = num_observations))
+}
+
+
+get_default_lavaan_call <- function() {
+  return(paste("lavaan::sem(model = model,",
+        "sample.cov = %%TARGET%%,",
+        "sample.nobs = observations)"))
+}
+
+
+generate_variable_names <- function(cov_mat, vars_per_line) {
   var_names <- ""
   var_i <- 0
   for (variable in row.names(cov_mat)) {
@@ -182,8 +194,11 @@ semproducible <- function(x, formula = NULL, target_variable = "cov_mat",
       var_i <- 0
     }
   }
+  return(var_names)
+}
 
-  # Generate values.
+
+generate_values <- function(cov_mat, vars_per_line, digits) {
   values <- ""
   var_i <- 0
   for (i in seq.int(ncol(cov_mat))) {
@@ -205,23 +220,22 @@ semproducible <- function(x, formula = NULL, target_variable = "cov_mat",
   # Remove superfluous comma (,) at the end of values.
   values <- trimws(values, which = "right")
   values <- substr(values, 1, nchar(values) - 1)
+  return(values)
+}
 
-  # Use default or custom code template.
-  if (is.null(template)) {
-    code <- code_template()
-  } else {
-    code <- template
-  }
 
-  # Replace placeholders with variable names and variable values.
-  code <- gsub("%%LAVAAN_CALL%%", lavaan_call, code)
-  code <- gsub("%%OBSERVATIONS%%", num_observations, code)
-  code <- gsub("%%FORMULA%%", formula, code)
-  code <- gsub("%%TARGET%%", target_variable, code)
-  code <- gsub("%%VARIABLES%%", var_names, code)
-  code <- gsub("%%VALUES%%", values, code)
+replace_code_template_placeholders <- function(params, code) {
+  code <- gsub("%%LAVAAN_CALL%%", params$call, code)
+  code <- gsub("%%OBSERVATIONS%%", params$num_observations, code)
+  code <- gsub("%%FORMULA%%", params$formula, code)
+  code <- gsub("%%TARGET%%", params$target_variable, code)
+  code <- gsub("%%VARIABLES%%", params$var_names, code)
+  code <- gsub("%%VALUES%%", params$values, code)
+  return(code)
+}
 
-  # Run the code to check for errors?
+
+run_and_eval_code <- function(eval, formula, code) {
   if (eval) {
     if (is.null(formula)) {
       stop("No lavaan formula specified, cannot evaluate lavaan model.",
@@ -235,5 +249,4 @@ semproducible <- function(x, formula = NULL, target_variable = "cov_mat",
              error = function(e) stop(e))
     message("Code and lavaan model evaluated successfully.")
   }
-  return(code)
 }
