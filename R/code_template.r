@@ -35,7 +35,7 @@
 #' code <- semproducible(data, formula="y ~ x", template = template)
 #' }
 code_template <- function() {
-  code <- "library(tibble)
+  return("library(tibble)
 library(lavaan)
 
 # Number of observations.
@@ -58,6 +58,5 @@ model <- '%%FORMULA%%'
 fit <- %%LAVAAN_CALL%%
 
 # Show results.
-summary(fit)"
-  return(code)
+summary(fit)")
 }
