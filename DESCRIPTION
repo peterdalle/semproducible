@@ -1,8 +1,8 @@
 Package: semproducible
 Type: Package
-Title: Code Generator for Reproducible SEM Models
-Version: 0.1.4
-Date: 2019-09-25
+Title: Code Generator for Reproducible Latent Variable Models (lavaan)
+Version: 0.1.5
+Date: 2022-02-12
 Authors@R: c(
     person("Peter", "Dahlgren", email = "peterdalle@gmail.com", role = c("aut", "cre"), 
            comment = c(ORCID = "0000-0002-3509-3329"))
@@ -15,11 +15,11 @@ URL: https://github.com/peterdalle/semproducible
 BugReports: https://github.com/peterdalle/semproducible/issues
 License: file LICENSE
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 Suggests: 
     testthat (>= 2.1.0), 
     stats,
     stringi,
     tibble,
     lavaan
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2

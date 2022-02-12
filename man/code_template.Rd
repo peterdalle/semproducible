@@ -23,23 +23,26 @@ Placeholder variables:
 \itemize{
 \item{\code{\%\%FORMULA\%\%}} = \code{\link[lavaan:sem]{lavaan}} formula.
 \item{\code{\%\%OBSERVATIONS\%\%}} = number of observations of the actual data.
-\item{\code{\%\%TARGET\%\%}} = variable name of the covariance matrix.
 \item{\code{\%\%VARIABLES\%\%}} = column names (variable names) of
 the covariance matrix.
 \item{\code{\%\%VALUES\%\%}} = actual values of the covariance matrix.
 \item{\code{\%\%LAVAAN_CALL\%\%}} = \code{\link[lavaan:sem]{lavaan}} function
 call.
+\item{\code{\%\%COVMAT_VARIABLE\%\%}} = variable name of the covariance matrix.
+\item{\code{\%\%FIT_VARIABLE\%\%}} = variable name of the lavaan object that
+is created from \code{\link[lavaan:sem]{lavaan}}.
 }
 }
 \examples{
-\dontrun{
-# Create random data.
 data <- data.frame(x = rnorm(100), y = rnorm(100))
 
-# Modify code template.
-template <- paste(code_template(), "\n# A comment placed at end of code")
+code <- semproducible(data, formula="y ~ x", template = code_template())
 
-# Generate R code with the template.
+# Modify code template
+template <- paste(code_template(), "\n# Adds a comment at end")
+
 code <- semproducible(data, formula="y ~ x", template = template)
-}
+
+# Look at the new code
+cat(code)
 }

@@ -12,28 +12,31 @@
 #' \itemize{
 #' \item{\code{\%\%FORMULA\%\%}} = \code{\link[lavaan:sem]{lavaan}} formula.
 #' \item{\code{\%\%OBSERVATIONS\%\%}} = number of observations of the actual data.
-#' \item{\code{\%\%TARGET\%\%}} = variable name of the covariance matrix.
 #' \item{\code{\%\%VARIABLES\%\%}} = column names (variable names) of
 #' the covariance matrix.
 #' \item{\code{\%\%VALUES\%\%}} = actual values of the covariance matrix.
 #' \item{\code{\%\%LAVAAN_CALL\%\%}} = \code{\link[lavaan:sem]{lavaan}} function
 #' call.
+#' \item{\code{\%\%COVMAT_VARIABLE\%\%}} = variable name of the covariance matrix.
+#' \item{\code{\%\%FIT_VARIABLE\%\%}} = variable name of the lavaan object that
+#' is created from \code{\link[lavaan:sem]{lavaan}}.
 #' }
 #'
 #' @return a character string with the R code template.
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Create random data.
 #' data <- data.frame(x = rnorm(100), y = rnorm(100))
 #'
-#' # Modify code template.
-#' template <- paste(code_template(), "\n# A comment placed at end of code")
+#' code <- semproducible(data, formula="y ~ x", template = code_template())
 #'
-#' # Generate R code with the template.
+#' # Modify code template
+#' template <- paste(code_template(), "\n# Adds a comment at end")
+#'
 #' code <- semproducible(data, formula="y ~ x", template = template)
-#' }
+#'
+#' # Look at the new code
+#' cat(code)
 code_template <- function() {
   return("library(tibble)
 library(lavaan)
@@ -42,21 +45,40 @@ library(lavaan)
 observations <- %%OBSERVATIONS%%
 
 # Covariance matrix.
-%%TARGET%% <- tribble(%%VARIABLES%%
+%%COVMAT_VARIABLE%% <- tribble(%%VARIABLES%%
 %%VALUES%%)
 
 # Convert tibble to matrix (that lavaan can handle).
-%%TARGET%% <- as.matrix(%%TARGET%%)
+%%COVMAT_VARIABLE%% <- as.matrix(%%COVMAT_VARIABLE%%)
 
 # Rows should have names too.
-rownames(%%TARGET%%) <- colnames(%%TARGET%%)
+rownames(%%COVMAT_VARIABLE%%) <- colnames(%%COVMAT_VARIABLE%%)
 
 # SEM model in lavaan syntax.
-model <- '%%FORMULA%%'
+formula <- '%%FORMULA%%'
 
 # Fit SEM model.
-fit <- %%LAVAAN_CALL%%
+%%FIT_VARIABLE%% <- %%LAVAAN_CALL%%
 
 # Show results.
-summary(fit)")
+summary(%%FIT_VARIABLE%%)")
+}
+
+
+get_default_lavaan_call <- function() {
+  return(paste("lavaan::sem(model = formula,",
+               "sample.cov = %%COVMAT_VARIABLE%%,",
+               "sample.nobs = observations)"))
+}
+
+
+replace_code_template_placeholders <- function(code, params) {
+  code <- gsub("%%LAVAAN_CALL%%", params$call, code)
+  code <- gsub("%%OBSERVATIONS%%", params$num_observations, code)
+  code <- gsub("%%FORMULA%%", params$formula, code)
+  code <- gsub("%%VARIABLES%%", params$var_names, code)
+  code <- gsub("%%VALUES%%", params$values, code)
+  code <- gsub("%%COVMAT_VARIABLE%%", params$covmat_variable, code)
+  code <- gsub("%%FIT_VARIABLE%%", params$fit_variable, code)
+  return(code)
 }

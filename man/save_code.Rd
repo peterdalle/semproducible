@@ -19,16 +19,12 @@ existing files unless \code{overwrite} is explicitly set to \code{TRUE}.
 }
 \examples{
 \dontrun{
-# Create random data.
 data <- data.frame(x = rnorm(100), y = rnorm(100))
 
-# Generate R code.
 code <- semproducible(data, formula="y ~ x")
 
-# Save R code to file.
 save_code(code, "create_data.r")
 
-# Save again, but the file exists so overwrite=TRUE is necessary.
 save_code(code, "create_data.r", overwrite = TRUE)
 }
 }
