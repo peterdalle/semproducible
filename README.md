@@ -150,6 +150,7 @@ Variances:
 - [How do I control the width of the code?](https://github.com/peterdalle/semproducible/wiki#how-do-i-control-the-width-of-the-code)
 - [Can I use semproducible in a `tidyverse` pipeline?](https://github.com/peterdalle/semproducible/wiki#can-i-use-semproducible-in-a-tidyverse-pipeline)
 - [How do I know that my generated code is correct?](https://github.com/peterdalle/semproducible/wiki#how-do-i-know-that-my-generated-code-is-correct)
+- [Why doesn't my generated code produce the exact same result?](https://github.com/peterdalle/semproducible/wiki#why-doesnt-my-generated-code-produce-the-exact-same-result)
 
 ## Documentation
 
