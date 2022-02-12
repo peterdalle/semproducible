@@ -1,6 +1,6 @@
 # Semproducible reproduce a lavaan model
 
-**Semproducible** is an R package that make your latent variable models in [lavaan](http://lavaan.ugent.be/) reproducible. Semproducible generates all the necessary data and R code from your existing lavaan model.
+**Semproducible** is an R package that makes your latent variable models in [lavaan](http://lavaan.ugent.be/) reproducible. Semproducible generates all the necessary data and R code from your existing lavaan model.
 
 This helps with open science without the need to disclose the raw data that might be sensitive, but still gives other researchers the ability to reproduce your results.
 
