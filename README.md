@@ -1,101 +1,84 @@
-# semproducible - code generator for reproducible SEM models
+# Semproducible reproduce a lavaan model
 
-**semproducible** is an R package that can easily make your [lavaan](http://lavaan.ugent.be/) models reproducible by generating all the necessary data and R code, with just one line of code.
+**Semproducible** is an R package that make your latent variable models in [lavaan](http://lavaan.ugent.be/) reproducible. Semproducible generates all the necessary data and R code from your existing lavaan model.
 
-The easiest way to reproduce your SEM model is to pass your lavaan object as an argument to semproducible: 
+This helps with open science without the need to disclose the raw data that might be sensitive, but still gives other researchers the ability to reproduce your results.
 
-```r
-semproducible(fit)
-```
+Benefits:
 
-That's it!
+- only one line of code to reproduce your model
+- the generated code fit a journal appendix
+- researchers can reproduce your model (and try alternative model specifications)
 
-![](demo.gif)
+![](man/figures/demo.gif)
 
-# Benefits of semproducible
-
-- only one line of code is needed to reproduce your model
-- you don't need to make your raw data publicly accessible
-- the generated code can fit in a journal article or appendix
-- other researchers can try alternative model specifications
-
-In short, semproducible offers a good balance between open science, reproducibility, and integrity.
-
-# Install
+## Install
 
 ```r
 devtools::install_github("peterdalle/semproducible")
 ```
 
-# How it works
+## Usage
 
-You can use semproducible in two ways.
+```r
+semproducible(x, formula)
+```
 
-The first way is to reproduce an existing model:
+Where `x` is either a lavaan model or a data frame.
 
-1. Pass your `lavaan` model to semproducible.
-2. Semproducible extracts the fitted (observed) covariance matrix from your model and the formula syntax.
-3. Semproducible generates all R code for both the covariance matrix and code necessary to run the model.
+And `formula` is the lavaan formula syntax (e.g., `latent =~ x1 + x2 + x3`).
 
-The second way is to reproduce all possible models in order to explore [researcher degrees of freedom](https://en.wikipedia.org/wiki/Researcher_degrees_of_freedom) or perform a multiverse or [sensitivity analysis](https://en.wikipedia.org/wiki/Sensitivity_analysis):
+## Examples
 
-1. Give semproducible a data frame.
-2. Semproducible creates a covariance matrix of your data frame.
-3. Semproducible generates R code for both the covariance matrix and code necessary to run the SEM model using `lavaan`.
+### 1. Generate code for a lavaan model
 
-# Examples
-
-## 1. Reproduce existing model
+When you have an existing lavaan model and you want to generate code to make it reproducible.
 
 ```r
 library(lavaan)
 library(semproducible)
 
-# Example model from http://lavaan.ugent.be/tutorial/sem.html
-model <- "# latent variables
-            ind60 =~ x1 + x2 + x3
-            dem60 =~ y1 + y2 + y3 + y4
-            dem65 =~ y5 + y6 + y7 + y8
-          # regressions
-            dem60 ~ ind60
-            dem65 ~ ind60 + dem60
-          # residual covariances
-            y1 ~~ y5
-            y2 ~~ y4 + y6
-            y3 ~~ y7
-            y4 ~~ y8
-            y6 ~~ y8"
+# Example: http://lavaan.ugent.be/tutorial/sem.html
+formula <- "# latent variables
+              ind60 =~ x1 + x2 + x3
+              dem60 =~ y1 + y2 + y3 + y4
+              dem65 =~ y5 + y6 + y7 + y8
+            # regressions
+              dem60 ~ ind60
+              dem65 ~ ind60 + dem60
+            # residual covariances
+              y1 ~~ y5
+              y2 ~~ y4 + y6
+              y3 ~~ y7
+              y4 ~~ y8
+              y6 ~~ y8"
 
-# Fit SEM model.
-fit <- sem(model, data = PoliticalDemocracy)
+fit <- sem(formula, data=PoliticalDemocracy)
 
-# Generate code to reproduce model.
-code <- semproducible(fit, formula = model)
+# Reproduce lavaan model.
+code <- semproducible(fit, formula)
 
-# Show the generated code.
+# Show generated code.
 cat(code)
 ```
 
-## 2. Reproduce all possible models
+### 2. Generate code for a data frame
 
-Reproduce all possible SEM models with variables that was *not* included in the model:
+When you have a data frame with many variables, and you want other researchers to choose variables to model.
 
 ```r
 library(semproducible)
+library(tidyverse)
 
-# We can only use numeric columns, so we exclude character columns.
-df <- iris[, 1:4]
-
-# Use the data frame with iris data and specify a lavaan model.
-code <- semproducible(df, formula = "Sepal.Length ~ Sepal.Width + Petal.Length")
-
-# Show the generated code.
-cat(code)
+iris %>% 
+  select(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>% 
+  semproducible(formula = "Sepal.Length ~ Sepal.Width + Petal.Length") %>% 
+  cat()
 ```
 
-# Look at the generated code
+## What the generated code looks like
 
-If you run example 2 above, the generated code will look something like this:
+If you run example 2 above, the generated code will look like this:
 
 ```r
 library(tibble)
@@ -118,16 +101,16 @@ cov_mat <- as.matrix(cov_mat)
 rownames(cov_mat) <- colnames(cov_mat)
 
 # SEM model in lavaan syntax.
-model <- 'Sepal.Length ~ Sepal.Width + Petal.Length'
+formula <- 'Sepal.Length ~ Sepal.Width + Petal.Length'
 
 # Fit SEM model.
-fit <- lavaan::sem(model, sample.cov = cov_mat, sample.nobs = observations)
+fit <- lavaan::sem(formula, sample.cov = cov_mat, sample.nobs = observations)
 
 # Show results.
 summary(fit)
 ```
 
-Let's run the generated code above. The output should look similar to this:
+And if you also run the generated code above, the output will be successfully reproduced:
 
 ```
 lavaan 0.6-5 ended normally after 19 iterations
@@ -160,17 +143,7 @@ Variances:
    .Sepal.Length      0.109    0.013    8.660    0.000
 ```
 
-The code seems to work, but how does it compare to the original dataset? Let's run a model on the original data and compare its output:
-
-```r
-fit_original <- lavaan::sem("Sepal.Length ~ Sepal.Width + Petal.Length", iris[, 1:4])
-
-summary(fit_original)
-```
-
-As you can see (if you run the code), the output is identical to the previous one, and we have successfully reproduced the model.
-
-# Questions
+## Questions
 
 - [How do I save my code to a file?](https://github.com/peterdalle/semproducible/wiki#how-do-i-save-my-code-to-a-file)
 - [Do I need to specify all columns?](https://github.com/peterdalle/semproducible/wiki#do-i-need-to-specify-all-columns)
@@ -178,21 +151,21 @@ As you can see (if you run the code), the output is identical to the previous on
 - [Can I use semproducible in a `tidyverse` pipeline?](https://github.com/peterdalle/semproducible/wiki#can-i-use-semproducible-in-a-tidyverse-pipeline)
 - [How do I know that my generated code is correct?](https://github.com/peterdalle/semproducible/wiki#how-do-i-know-that-my-generated-code-is-correct)
 
-# Documentation
+## Documentation
 
-Load semproducible and then run `?semproducible` in the R console to view the documentation.
+Load semproducible and then run `?semproducible` in the R console to view the full documentation.
 
-# Support
+## Support
 
 Report problems or request a new feature by [submitting a new issue](https://github.com/peterdalle/semproducible/issues/new).
 
-# Contribute
+## Contribute
 
 You can help with:
 
-- Test semproducible in your project and report any bugs.
-- Read the documentation and verify that it corresponds to actual behavior.
+- Test semproducible in your project, and [report a bug](https://github.com/peterdalle/semproducible/issues/new)
+- Read the documentation and verify that it corresponds to actual behavior
 
-# License
+## License
 
 [MIT](LICENSE)
