@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it this way."
+message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Dahlgren"
     given-names: "Peter M."
@@ -9,11 +9,11 @@ date-released: 2022-02-12
 version: 0.9.0
 url: "https://github.com/peterdalle/semprodicible"
 preferred-citation:
-  type: data
+  type: software
   authors:
     - family-names: "Dahlgren"
       given-names: "Peter M."
       orcid: "https://orcid.org/0000-0002-3509-3329"
   title: "semprodicible"
-  year: 2018
+  year: 2022
   url: "https://github.com/peterdalle/semprodicible"
