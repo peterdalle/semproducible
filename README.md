@@ -2,15 +2,18 @@
 
 **Semproducible** is an R package that makes your latent variable models in [lavaan](http://lavaan.ugent.be/) reproducible. Semproducible generates all the necessary data and R code from your existing lavaan model.
 
-This helps with open science without the need to disclose the raw data that might be sensitive, but still gives other researchers the ability to reproduce your results.
+This package makes it possible to reproduce a model without disclosing the raw data (which might be sensitive).
 
-Benefits:
+You can use semproducible in two ways:
 
-- only one line of code to reproduce your model
-- the generated code fit a journal appendix
-- researchers can reproduce your model (and try alternative model specifications)
+1. Generate reproducible code from a lavaan model
+2. Generate reproducible code from a data frame
 
-![](man/figures/demo.gif)
+## Benefits
+
+- Only one line of code to reproduce your model
+- The generated code fit a journal appendix
+- Researchers can reproduce your model (and try alternative model specifications)
 
 ## Install
 
@@ -26,17 +29,16 @@ semproducible(x, formula)
 
 Where `x` is either a lavaan model or a data frame.
 
-And `formula` is the lavaan formula syntax (e.g., `latent =~ x1 + x2 + x3`).
+And `formula` is the lavaan formula syntax (e.g., `ind60 =~ x1 + x2 + x3`).
 
 ## Examples
 
-### 1. Generate code for a lavaan model
+### 1. Generate code from a lavaan model
 
-When you have an existing lavaan model and you want to generate code to make it reproducible.
+Let's say you have the following lavaan model, and you want to make it reproducible:
 
 ```r
 library(lavaan)
-library(semproducible)
 
 # Example: http://lavaan.ugent.be/tutorial/sem.html
 formula <- "# latent variables
@@ -54,17 +56,21 @@ formula <- "# latent variables
               y6 ~~ y8"
 
 fit <- sem(formula, data=PoliticalDemocracy)
+```
 
-# Reproduce lavaan model.
+The only thing you need to do is to pass `fit` and `formula` into semproducible:
+```r
+library(semproducible)
+
 code <- semproducible(fit, formula)
 
 # Show generated code.
 cat(code)
 ```
 
-### 2. Generate code for a data frame
+### 2. Generate code from a data frame
 
-When you have a data frame with many variables, and you want other researchers to choose variables to model.
+If you have a data frame with many variables, you can reproduce the entire data frame and let other researchers choose variables to model.
 
 ```r
 library(semproducible)
@@ -110,38 +116,7 @@ fit <- lavaan::sem(formula, sample.cov = cov_mat, sample.nobs = observations)
 summary(fit)
 ```
 
-And if you also run the generated code above, the output will be successfully reproduced:
-
-```
-lavaan 0.6-5 ended normally after 19 iterations
-
-  Estimator                                         ML
-  Optimization method                           NLMINB
-  Number of free parameters                          3
-                                                      
-  Number of observations                           150
-                                                      
-Model Test User Model:
-                                                      
-  Test statistic                                 0.000
-  Degrees of freedom                                 0
-
-Parameter Estimates:
-
-  Information                                 Expected
-  Information saturated (h1) model          Structured
-  Standard errors                             Standard
-
-Regressions:
-                   Estimate  Std.Err  z-value  P(>|z|)
-  Sepal.Length ~                                      
-    Sepal.Width       0.596    0.069    8.677    0.000
-    Petal.Length      0.472    0.017   27.849    0.000
-
-Variances:
-                   Estimate  Std.Err  z-value  P(>|z|)
-   .Sepal.Length      0.109    0.013    8.660    0.000
-```
+And if you then run the generated code above, you will notice that it has been successfully reproduced.
 
 ## Questions
 
