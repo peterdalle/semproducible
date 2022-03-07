@@ -102,6 +102,10 @@ semproducible <- function(x, formula = NULL, covmat_variable = "cov_mat",
   if (!(is.matrix(x) | is.data.frame(x) | inherits(x, "lavaan"))) {
     stop("x must be of type 'matrix', 'data.frame' or 'lavaan'.", call. = FALSE)
   }
+  if (!is.null(formula) & !is.character(formula)) {
+    stop("Argument 'formula' must be a character string, not '",
+         class(formula)[1], "'.", call. = FALSE)
+  }
   if (!(is.character(template) & length(template) == 1)) {
       stop("Argument 'template' must be a character string of length 1.",
            call. = FALSE)
@@ -130,7 +134,9 @@ semproducible <- function(x, formula = NULL, covmat_variable = "cov_mat",
   params$var_names <- generate_variable_names(cov_mat, vars_per_line)
   params$values <- generate_values(cov_mat, vars_per_line, digits)
   code <- replace_code_template_placeholders(template, params)
-  run_and_eval_code(code, eval, params$formula)
+  if (eval) {
+    run_and_evaluate_code(code, params$formula)
+  }
   return(code)
 }
 
@@ -238,18 +244,16 @@ generate_values <- function(cov_mat, vars_per_line, digits) {
 }
 
 
-run_and_eval_code <- function(code, eval, formula) {
-  if (eval) {
-    if (is.null(formula)) {
-      stop("No lavaan formula specified, cannot evaluate lavaan model.",
-           call. = FALSE)
-    }
-    if (is.null(code)) {
-      stop("No code was generated, cannot evaluate code or lavaan model.",
-           call. = FALSE)
-    }
-    tryCatch(utils::capture.output(base::eval(parse(text = code))),
-             error = function(e) stop(e))
-    message("Code and lavaan model evaluated successfully.")
+run_and_evaluate_code <- function(code, formula) {
+  if (is.null(formula)) {
+    stop("No lavaan formula specified, cannot evaluate lavaan model.",
+         call. = FALSE)
   }
+  if (is.null(code)) {
+    stop("No code was generated, cannot evaluate code or lavaan model.",
+         call. = FALSE)
+  }
+  tryCatch(utils::capture.output(base::eval(parse(text = code))),
+           error = function(e) stop(e))
+  message("Code and lavaan model evaluated successfully.")
 }

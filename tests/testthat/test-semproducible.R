@@ -118,7 +118,7 @@ test_that("covariance matrix as input works", {
 })
 
 
-test_that("non-numeric input parameters are handled correctly", {
+test_that("non-numeric input parameters works", {
   set.seed(5653)
   data <- data.frame(x = rnorm(100),
                      y = rnorm(100),
@@ -159,6 +159,58 @@ test_that("non-numeric input parameters are handled correctly", {
 })
 
 
+test_that("wrong input parameters fails", {
+  wrong <- list()
+  expect_error(semproducible(wrong, formula = character(0)))
+
+  data <- data.frame(x=rnorm(100), y=rnorm(100))
+  expect_error(semproducible(data, covmat_variable=""))
+  expect_error(semproducible(data, covmat_variable=NULL))
+  expect_error(semproducible(data, covmat_variable=NULL))
+  expect_error(semproducible(data, template=NULL))
+})
+
+
+get_any_working_lavaan_model <- function() {
+  formula <- "visual  =~ x1 + x2 + x3
+              textual =~ x4 + x5 + x6
+              speed   =~ x7 + x8 + x9"
+  fit <- lavaan::sem(model=formula, data=lavaan::HolzingerSwineford1939)
+  list(fit=fit, formula=formula)
+}
+
+
+test_that("empty formula works", {
+  model <- get_any_working_lavaan_model()
+  fit <- model$fit
+  formula <- model$formula
+
+  code1 <- semproducible(fit, formula=NULL)
+  code2 <- semproducible(fit, formula=NULL, eval=TRUE)
+  code3 <- semproducible(fit, formula=formula, eval=TRUE)
+
+  expect_gte(nchar(code1), 2000)
+  expect_gte(nchar(code2), 2000)
+  expect_gte(nchar(code3), 2000)
+})
+
+
+test_that("switching input arguments fails", {
+  model <- get_any_working_lavaan_model()
+  fit <- model$fit
+  formula <- model$formula
+
+  expect_error(semproducible(formula, fit))
+})
+
+
+test_that("evaluate code with invalid input arguments fails", {
+  expect_error(run_and_evaluate_code(NULL, NULL))
+  expect_error(run_and_evaluate_code(NULL, ""))
+  expect_error(run_and_evaluate_code("", NULL))
+})
+
+
 test_that("saving code files work", {
   data <- data.frame(x = rnorm(100), y = rnorm(100))
 
@@ -185,17 +237,14 @@ test_that("evaluating code works", {
   data <- data.frame(x = rnorm(100), y = rnorm(100))
 
   # This should work
-  code <- semproducible(data, covmat_variable="tmp_var5",
-                        formula = "y ~ x",
-                        vars_per_line = 4,
-                        digits = 3)
+  code <- semproducible(data, covmat_variable="tmp_var5", formula = "y ~ x",
+                        vars_per_line = 4, digits = 3, eval = TRUE)
 
   # Use wrong variable names, should cause complaints by lavaan.
   expect_error(code <- semproducible(data, covmat_variable="tmp_var5",
                         formula = "y ~ VAR_DOES_NOT_EXIST",
                         vars_per_line = 4,
                         eval = TRUE))
-
 })
 
 
@@ -221,11 +270,9 @@ test_that("using fitted lavaan object works", {
 
 
 test_that("more complex fitted lavaan object works", {
-  formula <- "visual  =~ x1 + x2 + x3
-              textual =~ x4 + x5 + x6
-              speed   =~ x7 + x8 + x9"
-
-  fit <- lavaan::sem(model = formula, data = lavaan::HolzingerSwineford1939)
+  model <- get_any_working_lavaan_model()
+  fit <- model$fit
+  formula <- model$formula
 
   # This should work
   code <- semproducible(fit, covmat_variable="tmp_var7",
@@ -244,7 +291,7 @@ test_that("more complex fitted lavaan object works", {
 })
 
 
-test_that("compare lavaan covariance with semproducible covariances", {
+test_that("compare lavaan covariance with semproducible covariances works", {
   set.seed(8324)
 
   # Compare random covariance matrices.
@@ -276,7 +323,7 @@ test_that("compare lavaan covariance with semproducible covariances", {
 })
 
 
-test_that("growth model works with data as input", {
+test_that("growth model with data as input works", {
   set.seed(273)
   # Example from bottom of page: https://lavaan.ugent.be/tutorial/growth.html
 
@@ -306,7 +353,7 @@ test_that("growth model works with data as input", {
 })
 
 
-test_that("growth model works with model as input", {
+test_that("growth model with model as input works", {
   set.seed(1234)
   # Example from bottom of page: https://lavaan.ugent.be/tutorial/growth.html
 
