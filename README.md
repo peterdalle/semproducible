@@ -59,13 +59,11 @@ fit <- sem(formula, data=PoliticalDemocracy)
 ```
 
 The only thing you need to do is to pass `fit` and `formula` into semproducible:
+
 ```r
 library(semproducible)
 
-code <- semproducible(fit, formula)
-
-# Show generated code.
-cat(code)
+semproducible(fit, formula)
 ```
 
 ### 2. Generate code from a data frame
@@ -78,8 +76,15 @@ library(tidyverse)
 
 iris %>% 
   select(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>% 
-  semproducible(formula = "Sepal.Length ~ Sepal.Width + Petal.Length") %>% 
-  cat()
+  semproducible(formula = "Sepal.Length ~ Sepal.Width + Petal.Length")
+```
+
+### 3. Save the generated code to a file
+
+```r
+code <- semproducible(fit, formula)
+
+save_code(code, "filename.R")
 ```
 
 ## What the generated code looks like
@@ -120,7 +125,7 @@ And if you then run the generated code above, you will notice that it has been s
 
 ## Questions
 
-- [How do I save my code to a file?](https://github.com/peterdalle/semproducible/wiki#how-do-i-save-my-code-to-a-file)
+<!-- - [How do I save my code to a file?](https://github.com/peterdalle/semproducible/wiki#how-do-i-save-my-code-to-a-file) -->
 - [Do I need to specify all columns?](https://github.com/peterdalle/semproducible/wiki#do-i-need-to-specify-all-columns)
 - [How do I control the width of the code?](https://github.com/peterdalle/semproducible/wiki#how-do-i-control-the-width-of-the-code)
 - [Can I use semproducible in a `tidyverse` pipeline?](https://github.com/peterdalle/semproducible/wiki#can-i-use-semproducible-in-a-tidyverse-pipeline)

@@ -1,3 +1,21 @@
+#' Checks if object is a semproducible object
+#'
+#' @param x object to check.
+#'
+#' @return TRUE if the object is a semproducible object, otherwise FALSE.
+#' @export
+#'
+#' @examples
+#' library(semproducible)
+#'
+#' code <- semproducible(iris, drop_non_numeric=TRUE)
+#'
+#' is_semproducible(code)
+is_semproducible <- function(x) {
+  "semproducible" %in% class(x)
+}
+
+
 #' Generate R code to reproduce a latent variable model (lavaan)
 #'
 #' Generate R code from your data frame, an existing covariance matrix, or
@@ -82,9 +100,9 @@
 #' code <- semproducible(data, formula="y ~ x", digits=5, vars_per_line=4)
 #'
 #' # View code
-#' cat(code)
+#' code
 #'
-#' save_code(code, "create_data.r")
+#' save_code(code, "create_data.R")
 #'
 #' # Example: http://lavaan.ugent.be/tutorial/cfa.html
 #' HS.model <- ' visual  =~ x1 + x2 + x3
@@ -100,7 +118,7 @@ semproducible <- function(x, formula = NULL, covmat_variable = "cov_mat",
                           use = "complete.obs",
                           template = code_template()) {
   if (!(is.matrix(x) | is.data.frame(x) | inherits(x, "lavaan"))) {
-    stop("x must be of type 'matrix', 'data.frame' or 'lavaan'.", call. = FALSE)
+    stop("Argument 'x' must be of type 'matrix', 'data.frame' or 'lavaan'.", call. = FALSE)
   }
   if (!is.null(formula) & !is.character(formula)) {
     stop("Argument 'formula' must be a character string, not '",
@@ -137,6 +155,7 @@ semproducible <- function(x, formula = NULL, covmat_variable = "cov_mat",
   if (eval) {
     run_and_evaluate_code(code, params$formula)
   }
+  class(code) <- c("semproducible", "character")
   return(code)
 }
 
@@ -148,7 +167,7 @@ check_non_numeric_columns_and_drop <- function(x, drop_non_numeric) {
   } else if (non_numeric_cols != 0) {
     non_numeric_colums <- paste(names(x[!sapply(x, is.numeric)]),
                                 collapse=" ")
-    stop(paste("x contain ", non_numeric_cols, " non-numeric column(s).",
+    stop(paste("Argument 'x' contain ", non_numeric_cols, " non-numeric column(s).",
                " Use 'drop_non_numeric = TRUE' to remove them",
                " automatically, or remove them manually.\n",
                "Columns: ", trimws(non_numeric_colums), sep=""),
@@ -163,7 +182,7 @@ drop_non_numeric_columns <- function(x) {
   x <- x[sapply(x, is.numeric)]
   num_columns_dropped <- NCOL(x_raw) - NCOL(x)
   columns_dropped <- paste(names(base::setdiff(x_raw, x)), collapse=" ")
-  message(paste("Dropped", num_columns_dropped, "non-numeric column(s):",
+  message(paste("# Dropped", num_columns_dropped, "non-numeric column(s):",
                 columns_dropped, sep=" "))
   return(x)
 }
@@ -255,5 +274,5 @@ run_and_evaluate_code <- function(code, formula) {
   }
   tryCatch(utils::capture.output(base::eval(parse(text = code))),
            error = function(e) stop(e))
-  message("Code and lavaan model evaluated successfully.")
+  message("# Code and lavaan model evaluated successfully.")
 }

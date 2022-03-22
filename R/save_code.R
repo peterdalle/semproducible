@@ -14,9 +14,9 @@
 #'
 #' code <- semproducible(data, formula="y ~ x")
 #'
-#' save_code(code, "create_data.r")
+#' save_code(code, "create_data.R")
 #'
-#' save_code(code, "create_data.r", overwrite = TRUE)
+#' save_code(code, "create_data.R", overwrite = TRUE)
 #'}
 save_code <- function(code, file, overwrite=FALSE) {
   if (file.exists(file) & !overwrite) {
@@ -27,4 +27,7 @@ save_code <- function(code, file, overwrite=FALSE) {
   fileConn <- file(file)
   writeLines(code, fileConn)
   close(fileConn)
+  if (!is_semproducible(code)) {
+    warning("The code was not a 'semproducible' object, but was saved successfully.")
+  }
 }

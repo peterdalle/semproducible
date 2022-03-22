@@ -12,7 +12,7 @@ test_that("generating R code from original data works", {
                         formula = "y ~ x + z + w")
 
   # Make sure the output type is correct.
-  expect_equal(class(code), "character")
+  expect_true(is_semproducible(code))
 
   # Run the generate code.
   eval(parse(text = code))
@@ -100,7 +100,7 @@ test_that("covariance matrix as input works", {
                         vars_per_line = 1)
 
   # Make sure the output type is correct.
-  expect_equal(class(code), "character")
+  expect_true(is_semproducible(code))
 
   # Run the generated code.
   eval(parse(text = code))
@@ -139,7 +139,7 @@ test_that("non-numeric input parameters works", {
                         drop_non_numeric = TRUE))
 
   # Make sure the output type is correct.
-  expect_equal(class(code), "character")
+  expect_true(is_semproducible(code))
 
   # Run the generated code.
   eval(parse(text = code))

@@ -36,7 +36,7 @@
 #' code <- semproducible(data, formula="y ~ x", template = template)
 #'
 #' # Look at the new code
-#' cat(code)
+#' code
 code_template <- function() {
   return("library(tibble)
 library(lavaan)
