@@ -5,8 +5,8 @@ authors:
     given-names: "Peter M."
     orcid: "https://orcid.org/0000-0002-3509-3329"
 title: "Semproducible"
-date-released: 2022-03-07
-version: 0.9.1
+date-released: 2022-03-22
+version: 0.9.2
 url: "https://github.com/peterdalle/semproducible"
 preferred-citation:
   type: software
